@@ -1,6 +1,12 @@
 import styles from './GameBoard.module.scss';
 import React, {useEffect, useState} from "react";
-import {coordinateLimitForShape, generateNewShape, isShapeAtBottomOfGameBoard} from "../assets/Utils";
+import {
+  BOTTOM_ROW_COORDINATES,
+  coordinateLimitForShape,
+  generateNewShape,
+  isShapeAtBottomOfGameBoard,
+  isShapeTouchingStack, numberOfRowsToClear
+} from "../assets/Utils";
 import GridCell from "../GridCell/GridCell";
 import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
 import {Coordinates, Shape} from "../assets/types.tsx";
@@ -22,13 +28,12 @@ export default GameBoard
 // Most of the game logic happens within this grid component
 const Grid: React.FC = () => {
 
-  const test_shape_l: Shape = {
+  const test_stack_shape: Shape = {
     coordinateList: [
-      {x_axis: 0, y_axis: 0},
-      {x_axis: 0, y_axis: 1},
-      {x_axis: 0, y_axis: 2},
-      {x_axis: 0, y_axis: 3},
-      {x_axis: 1, y_axis: 3},
+      {x_axis: 4, y_axis: 8},
+      {x_axis: 5, y_axis: 8},
+      {x_axis: 4, y_axis: 9},
+      {x_axis: 5, y_axis: 9},
     ]
   }
   const test_shape_square: Shape = {
@@ -40,12 +45,13 @@ const Grid: React.FC = () => {
     ]
   }
 
-  // State to hold the currently active ' moving ' shape
-  const [activeShape, setActiveShape] = useState<Shape>(test_shape_square)
-  // State to hold the 'stack' of tiles at the bottom of the game board.
-  const [stackCoordinates, setStackCoordinates] = useState<Coordinates[]>([])
 
-  const list_of_shapes = [test_shape_l, test_shape_square]
+  // State to hold the currently active ' moving ' shape
+  const [activeShape, setActiveShape] = useState<Shape>({coordinateList: []})
+  // State to hold the 'stack' of tiles at the bottom of the game board.
+  const [stackCoordinates, setStackCoordinates] = useState<Coordinates[]>(test_stack_shape.coordinateList)
+
+  const list_of_shapes = [test_stack_shape, test_shape_square]
 
 
   // TODO something is not working as expected here. Looks like check for coordinate limit blocks
@@ -72,7 +78,7 @@ const Grid: React.FC = () => {
 
       // Only update coordinates if shape is not out of bounds on next arrow move
       if (!coordinateLimitForShape({coordinateList: updatedCoordinates})) {
-        console.log('Update coordinates are: ', updatedCoordinates)
+        // console.log('Update coordinates are: ', updatedCoordinates)
         return {coordinateList: updatedCoordinates}
       } else {
         return prevState
@@ -82,7 +88,8 @@ const Grid: React.FC = () => {
 
   // Add coordinates to stack if they have reached hte bottom of the gamegrid. Also, empty the active shape state
   const addToStack = (shape: Shape) => {
-    if (isShapeAtBottomOfGameBoard(shape)) {
+    if (isShapeTouchingStack(shape, stackCoordinates) || isShapeAtBottomOfGameBoard(shape)) {
+      console.log('Touching!!!!')
       const updateState = stackCoordinates.concat(shape.coordinateList)
       setStackCoordinates(updateState)
       setActiveShape({coordinateList: []})
@@ -90,19 +97,33 @@ const Grid: React.FC = () => {
   }
 
   const createNewShape = () => {
-    console.log()
-    if(activeShape.coordinateList.length === 0){
+    if (activeShape.coordinateList.length === 0) {
       setActiveShape(generateNewShape)
+    }
+  }
+  const clearBottomRow = () => {
+    if(numberOfRowsToClear(stackCoordinates)) {
+      console.log('Clear bottom!!!')
+      const updatedStackCoordinates = stackCoordinates.filter(coordinate =>
+        !BOTTOM_ROW_COORDINATES.coordinateList.some(bottomRowCoordinate =>
+          coordinate.x_axis === bottomRowCoordinate.x_axis &&
+          coordinate.y_axis === bottomRowCoordinate.y_axis
+        )
+      )
+      updatedStackCoordinates.forEach(coordinate =>
+        coordinate.y_axis += 1
+      )
+      setStackCoordinates(updatedStackCoordinates)
     }
   }
 
 
 
-  // TODO generate and place new shape on board if the activeShape state is empty.
   useEffect(() => {
     window.addEventListener('keydown', handleMoveShape)
     addToStack(activeShape)
     createNewShape()
+    clearBottomRow()
     return () => {
       window.removeEventListener('keydown', handleMoveShape);
     }
