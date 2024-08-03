@@ -1,7 +1,7 @@
 // Helper function to check whether number has reached max coordinate
 import styles from '../GridCell/GridCelll.module.scss'
-import {Shape} from "../game-board/GameBoard";
 import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
+import {Shape} from "./types";
 export function coordinateLimit(num: number): boolean {
   return num > 9 || num < 0;
 }
@@ -24,7 +24,6 @@ export function getStyling(isActive: boolean, stackCell: boolean) : string {
 
 
 export function coordinateLimitForShape(shape: Shape): boolean {
-  console.log('Checking these coordinates: ', shape)
   return shape.coordinateList.some(coordinate =>
     coordinate.x_axis > X_AXIS_DIMENTION - 1  || coordinate.y_axis > Y_AXIS_DIMENTION -1  ||
     coordinate.x_axis < 0 ||  coordinate.y_axis  < 0
@@ -35,6 +34,18 @@ export function isShapeAtBottomOfGameBoard(shape: Shape): boolean {
   return shape.coordinateList.some(coordinate =>
       coordinate.y_axis === Y_AXIS_DIMENTION -1
   )
+}
+
+// TODO extend to generate more shapes than just simple blocks
+export function generateNewShape(): Shape {
+  return {
+    coordinateList: [
+      {x_axis: 4, y_axis: 0},
+      {x_axis: 4, y_axis: 1},
+      {x_axis: 5, y_axis: 0},
+      {x_axis: 5, y_axis: 1},
+    ]
+  }
 }
 
 
