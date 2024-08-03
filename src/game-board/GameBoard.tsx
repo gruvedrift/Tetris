@@ -1,77 +1,27 @@
 import styles from './GameBoard.module.scss';
 import React, {useEffect, useState} from "react";
-import {coordinateLimit, coordinateLimitForShape} from "../assets/Utils";
+import { coordinateLimitForShape, isShapeAtBottomOfGameBoard} from "../assets/Utils";
 import GridCell from "../GridCell/GridCell";
+import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
+import {Coordinates, Shape} from "../assets/types.tsx";
 
 // TODO move to types.ts
-interface Coordinates {
-  x_axis: number
-  y_axis: number
-}
 
 // TODO consider adding useMemo in order to not re-render the whole fucking page each time
 const GameBoard: React.FC = () => {
-
-  const handleKeydown = (event: KeyboardEvent) => {
-    setCoordinate(prevState => {
-      let new_y_axis = prevState.y_axis;
-      let new_x_axis = prevState.x_axis;
-
-      switch (event.key) {
-        case 'ArrowUp':
-          new_y_axis -= 1;
-          break;
-        case 'ArrowDown':
-          new_y_axis += 1;
-          break;
-        case 'ArrowLeft':
-          new_x_axis -= 1;
-          break;
-        case 'ArrowRight':
-          new_x_axis += 1;
-          break;
-        default:
-          return prevState;
-      }
-      if (coordinateLimit(new_x_axis) || coordinateLimit(new_y_axis)) {
-        console.log('Limit reached')
-        return prevState
-      } else {
-        return {x_axis: new_x_axis, y_axis: new_y_axis};
-      }
-    });
-  };
-
-  const [coordinate, setCoordinate] = useState<Coordinates>({x_axis: 0, y_axis: 0})
-
-  console.log('These are the coordinates: ', coordinate)
-
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeydown)
-    return () => {
-      window.removeEventListener('keydown', handleKeydown);
-    }
-  },)
-
   return (
     <div className={styles.gameboard}>
-      <Grid coordinates={coordinate}/>
+      <Grid/>
     </div>
   )
 }
 
 export default GameBoard
 
-interface GridProps {
-  coordinates: Coordinates
-}
-
 // TODO reverse the grid so that 0,0 is in the bottom left and 9,9 is in the upper right
 // Most of the game logic happens within this grid component
-const Grid: React.FC<GridProps> = ({coordinates}) => {
-  const x_axis_dimention = 10
-  const y_axis_dimention = 10
+const Grid: React.FC = () => {
+
   const test_shape_l: Shape =  {
     coordinateList: [
       {x_axis: 0, y_axis: 0},
@@ -89,9 +39,16 @@ const Grid: React.FC<GridProps> = ({coordinates}) => {
       {x_axis: 9, y_axis: 3},
     ]
   }
-  const [shapes, setShapes] = useState<Shape[]>()
-  const [movingShapeCoordinates, setMovingShapeCoordinates] = useState<Shape>(test_shape_square)
+
+  // State to hold the currently active ' moving ' shape
+  const [activeShape, setActiveShape] = useState<Shape>(test_shape_square)
+  // State to hold the 'stack' of tiles at the bottom of the game board.
+  const [stackCoordinates, setStackCoordinates ] = useState<Coordinates[]>([])
+
   const list_of_shapes = [test_shape_l, test_shape_square]
+
+
+
 
   // TODO something is not working as expected here. Looks like check for coordinate limit blocks
   /*
@@ -99,25 +56,42 @@ const Grid: React.FC<GridProps> = ({coordinates}) => {
   * Checks for out of bounds ( GameBoard x-axis limit )
   * **/
   const handleMoveShape = (event: KeyboardEvent) => {
-    setMovingShapeCoordinates(prevState => {
+    setActiveShape(prevState => {
       const updatedCoordinates = prevState.coordinateList.map(coordinates => {
         switch (event.key) {
           case 'ArrowLeft':
               return {...coordinates, x_axis: coordinates.x_axis - 1}
           case'ArrowRight':
             return {...coordinates, x_axis: coordinates.x_axis + 1}
+          case 'ArrowUp':
+            return {...coordinates, y_axis: coordinates.y_axis - 1 }
+          case 'ArrowDown':
+            return {...coordinates, y_axis: coordinates.y_axis + 1}
             default:
               return coordinates
         }
       })
+      // Only update coordinates if shape is not out of bounds on next arrow move
       if (!coordinateLimitForShape({coordinateList: updatedCoordinates})) {
         return { coordinateList: updatedCoordinates}
       } else {
         return prevState
       }
     });
+
+    // TODO update stack coordinates as soon as edge hits bottom of grid
+    // When bottom of game grid is reached, put active shape coordinates into the stack coordinate list
+    setStackCoordinates(prevState => {
+      if (isShapeAtBottomOfGameBoard(activeShape)) {
+        setActiveShape({coordinateList: []})
+        return activeShape.coordinateList
+      } else {
+        return prevState
+      }
+      })
   };
 
+  // TODO generate and place new shape on board if the activeShape state is empty.
   useEffect(() => {
     window.addEventListener('keydown', handleMoveShape)
     return () => {
@@ -126,17 +100,23 @@ const Grid: React.FC<GridProps> = ({coordinates}) => {
   })
 
 
-  const row = y_axis_dimention;
-  const column = x_axis_dimention;
+  const row = Y_AXIS_DIMENTION;
+  const column = X_AXIS_DIMENTION;
   const grid = []
   for (let i = 0; i < row; i++) {
     for (let j = 0; j < column; j++) {
 
-      const active = coordinates.y_axis === i && coordinates.x_axis == j
-      const reachedBottom = coordinates.y_axis === 9 && coordinates.y_axis === i && coordinates.x_axis === j
-      const inShape = movingShapeCoordinates.coordinateList.some(coordinate =>
-        coordinate.x_axis === j && coordinate.y_axis === i
+      // Calculate if coordinate is matching the stack state coordinates
+      const stackCoordinate = stackCoordinates?.some(coordinate =>
+          coordinate.x_axis === j && coordinate.y_axis === i
       )
+
+      // Calculate if coordinate is matching the active shape state coordinates
+      const activeShapeCoordinate = activeShape.coordinateList.some(coordinate =>
+          coordinate.x_axis === j && coordinate.y_axis === i
+      )
+
+
 
       // used for list
       const test = list_of_shapes.some( shape =>
@@ -152,10 +132,9 @@ const Grid: React.FC<GridProps> = ({coordinates}) => {
         <GridCell
           row={i}
           column={j}
-          isActive={active}
-          reachedBottom={reachedBottom}
-          inShape={inShape}
-          shapeList={[test_shape_square]}/>
+          isActive={activeShapeCoordinate}
+          stackCell={stackCoordinate}
+          />
       )
     }
   }
@@ -164,9 +143,4 @@ const Grid: React.FC<GridProps> = ({coordinates}) => {
       {grid}
     </div>
   )
-}
-
-
-export interface Shape {
-  coordinateList: Coordinates[]
 }
