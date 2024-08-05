@@ -52,7 +52,7 @@ export function isShapeAtBottomOfGameBoard(shape: Shape): boolean {
 }
 
 // Helper function to generate new shapes.
-// TODO extend to generate more shapes than just simple blocks. L-shape, |-shape, []-shape and Z-shape.
+// TODO make shape hold color also?
 export function generateNewShape(): Shape {
   return {
     coordinateList: [
@@ -63,6 +63,34 @@ export function generateNewShape(): Shape {
     ]
   }
 }
+
+// Generate L shape for testing
+export function generateLShape(): Shape {
+  return {
+    coordinateList: [
+      {x_axis: 4, y_axis: 0},
+      {x_axis: 4, y_axis: 1},
+      {x_axis: 4, y_axis: 2},
+      {x_axis: 4, y_axis: 3},
+      {x_axis: 5, y_axis: 3},
+    ]
+  }
+}
+
+// Rotates the shape 90 degrees if possible ( without surpassing the board limits )
+// Simple math formula from geometry (x, y) - > (y, -x).
+// Add 9 to x-coordinate and 0 to y coordinate to adjust for no negative coordinates
+export function rotateLShape(shape: Shape): Shape {
+  return {
+    coordinateList: shape.coordinateList.map(coordinate => {
+      return {
+        x_axis: coordinate.y_axis,
+        y_axis: (coordinate.x_axis * -1) + 9,
+      }
+    })
+  }
+}
+
 
 // Helper function to return how many, if any rows should be cleared from the board.
 // Number represents the number of rows from the bottom to be cleared.

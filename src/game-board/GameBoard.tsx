@@ -2,14 +2,15 @@ import styles from './GameBoard.module.scss';
 import React, {useEffect, useState} from "react";
 import {
   BOTTOM_ROW_COORDINATES,
-  coordinateLimitForShape,
+  coordinateLimitForShape, generateLShape,
   generateNewShape,
   isShapeAtBottomOfGameBoard,
-  isShapeTouchingStack, numberOfRowsToClear
+  isShapeTouchingStack,
+  numberOfRowsToClear
 } from "../assets/Utils";
 import GridCell from "../GridCell/GridCell";
 import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
-import {Coordinates, Shape} from "../assets/types.tsx";
+import {Color, Coordinates, Shape} from "../assets/types.tsx";
 
 // TODO move to types.ts
 
@@ -47,14 +48,14 @@ const Grid: React.FC = () => {
 
 
   // State to hold the currently active ' moving ' shape
-  const [activeShape, setActiveShape] = useState<Shape>({coordinateList: []})
+  const [activeShape, setActiveShape] = useState<Shape>({coordinateList: [], color: Color.WHITE})
   // State to hold the 'stack' of tiles at the bottom of the game board.
   const [stackCoordinates, setStackCoordinates] = useState<Coordinates[]>(test_stack_shape.coordinateList)
 
   const list_of_shapes = [test_stack_shape, test_shape_square]
 
 
-  // TODO something is not working as expected here. Looks like check for coordinate limit blocks
+  // TODO add some key event for rotating shape
   /*
   * Handles updating x-axis coordinates for the active shape on game board.
   * Checks for out of bounds ( GameBoard x-axis limit )
@@ -98,7 +99,7 @@ const Grid: React.FC = () => {
 
   const createNewShape = () => {
     if (activeShape.coordinateList.length === 0) {
-      setActiveShape(generateNewShape)
+      setActiveShape(generateLShape)
     }
   }
   const clearBottomRow = () => {

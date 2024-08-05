@@ -5,4 +5,15 @@ export interface Coordinates {
 
 export interface Shape {
     coordinateList: Coordinates[]
+    // color: Color
+}
+
+// TODO use this mayhaps
+export enum Color {
+    WHITE,
+    BLUE,
+    RED,
+    GREEN,
+    YELLOW,
+    PURPLE
 }
