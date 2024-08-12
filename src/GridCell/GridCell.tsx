@@ -4,13 +4,14 @@ import {getStyling} from "../assets/Utils";
 interface GridCellProps {
   row: number,
   column: number,
-  isActive: boolean,
+  collisionCell: boolean,
   stackCell: boolean,
+  paddingCell: boolean,
 }
 
 const GridCell: React.FC<GridCellProps> = (cellProps) => {
-  const {row, column, isActive, stackCell} = cellProps
-  const styling = getStyling(isActive, stackCell)
+  const {row, column, collisionCell, stackCell, paddingCell} = cellProps
+  const styling = getStyling(collisionCell, stackCell, paddingCell)
 
   return (
     <div
