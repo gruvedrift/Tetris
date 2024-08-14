@@ -1,12 +1,12 @@
 import styles from './GameBoard.module.scss';
 import React, {useEffect, useState} from "react";
 import {
-    BOTTOM_ROW_COORDINATES, coordinateLimit,
+    BOTTOM_ROW_COORDINATES, collisionCoordinateOutOfBounds, coordinateLimit,
     coordinateLimitForShape, generateLShape, generateLShapeV2,
     generateNewShape,
     isShapeAtBottomOfGameBoard,
     isShapeTouchingStack,
-    numberOfRowsToClear, rotateLShape, rotateLshapeV2
+    numberOfRowsToClear, rotateLShape, rotateLshapeV2, updateCoordinatesOnPlayerMove
 } from "../assets/Utils";
 import GridCell from "../GridCell/GridCell";
 import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
@@ -60,25 +60,50 @@ const Grid: React.FC = () => {
 
 
     const handleRotateShape = (event: KeyboardEvent) => {
-        console.log('Called')
         setActiveShapeV2(prevState => {
+
+            let updatedCoordinates: Coordinate[]
             let updatedCollisionCoordinates: Coordinate[]
-            let updatedPaddingCoordinates: Coordinate[]
+            const rotatedShape = rotateLshapeV2(prevState)
             switch (event.key) {
                 case 'ArrowUp':
-                    console.log('Previous:', prevState.collisionCoordinates)
-                    const updatedShape = rotateLshapeV2(prevState)
-                    updatedCollisionCoordinates = updatedShape.collisionCoordinates
-                    updatedPaddingCoordinates = updatedShape.coordinates
-                    console.log('New: ', updatedShape.collisionCoordinates)
+                    updatedCoordinates = rotatedShape.coordinates
+                    updatedCollisionCoordinates = rotatedShape.collisionCoordinates
+                    break;
+                case 'ArrowDown':
+                    ({updatedCoordinates, updatedCollisionCoordinates} = updateCoordinatesOnPlayerMove(
+                        prevState.coordinates,
+                        prevState.collisionCoordinates,
+                        0, 1
+                    ))
+                    break;
+                case 'ArrowLeft':
+                    ({updatedCoordinates, updatedCollisionCoordinates} = updateCoordinatesOnPlayerMove(
+                        prevState.coordinates,
+                        prevState.collisionCoordinates,
+                        -1, 0
+                    ))
+                    break;
+                case 'ArrowRight':
+                    ({updatedCoordinates, updatedCollisionCoordinates} = updateCoordinatesOnPlayerMove(
+                        prevState.coordinates,
+                        prevState.collisionCoordinates,
+                        1,0
+                    ))
                     break;
                 default:
                     return prevState
             }
-            return {
-                coordinates: updatedPaddingCoordinates,
-                collisionCoordinates: updatedCollisionCoordinates,
-                pivotPointCoordinate: prevState.pivotPointCoordinate
+
+            // Update only if collision coordinates does not touch edges. Ensures rotational safety
+            if (!collisionCoordinateOutOfBounds(updatedCollisionCoordinates)) {
+                return {
+                    coordinates: updatedCoordinates,
+                    collisionCoordinates: updatedCollisionCoordinates,
+                    pivotPointCoordinate: prevState.pivotPointCoordinate
+                }
+            } else {
+                return prevState
             }
         })
     }

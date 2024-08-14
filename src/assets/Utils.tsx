@@ -3,6 +3,22 @@ import styles from '../GridCell/GridCelll.module.scss'
 import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
 import {Coordinate, Shape, ShapeV2} from "./types";
 
+
+export function updateCoordinatesOnPlayerMove(
+    coordinates: Coordinate[],
+    collisionCoordinates: Coordinate[],
+    x_adjust: number,
+    y_adjust: number,
+): {updatedCoordinates: Coordinate[], updatedCollisionCoordinates: Coordinate[]} {
+    const updatedCoordinates = coordinates.map(coordinate => (
+        { x_axis: coordinate.x_axis + x_adjust ,y_axis: coordinate.y_axis + y_adjust }
+    ))
+    const updatedCollisionCoordinates = collisionCoordinates.map(coordinate => (
+        { x_axis: coordinate.x_axis + x_adjust ,y_axis: coordinate.y_axis + y_adjust }
+    ))
+    return {updatedCoordinates, updatedCollisionCoordinates}
+}
+
 export function coordinateLimit(num: number): boolean {
     return num > 9 || num < 0;
 }
@@ -25,6 +41,13 @@ export function getStyling(collisionCell: boolean, stackCell: boolean, paddingCe
         default:
             return styles.gridcell // Default case is just give regular styling
     }
+}
+
+export function collisionCoordinateOutOfBounds(collisionCoordinates: Coordinate[]): boolean {
+    return collisionCoordinates.some(coordinate =>
+        coordinate.x_axis > X_AXIS_DIMENTION -1 || coordinate.y_axis > Y_AXIS_DIMENTION -1 ||
+        coordinate.x_axis < 0 || coordinate.y_axis < 0
+    )
 }
 
 
