@@ -1,9 +1,10 @@
 // Helper function to check whether number has reached max coordinate
 import styles from '../GridCell/GridCelll.module.scss'
 import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
-import {Coordinate, Shape, ShapeV2} from "./types";
+import {Color, Coordinate, Shape} from "./types";
 
 
+/* Helper function for updating shape coordinates on user input. <, V, > */
 export function updateCoordinatesOnPlayerMove(
     coordinates: Coordinate[],
     collisionCoordinates: Coordinate[],
@@ -19,13 +20,11 @@ export function updateCoordinatesOnPlayerMove(
     return {updatedCoordinates, updatedCollisionCoordinates}
 }
 
-export function coordinateLimit(num: number): boolean {
-    return num > 9 || num < 0;
-}
-
 // Helper function to make the ternary styling easier to read
 export function getStyling(collisionCell: boolean, stackCell: boolean, paddingCell: boolean): string {
     switch (true) {
+        case paddingCell && stackCell:
+            return styles.stackcell
         case collisionCell && paddingCell:
             return styles.collisioncell
         case !collisionCell && paddingCell:
@@ -51,18 +50,11 @@ export function collisionCoordinateOutOfBounds(collisionCoordinates: Coordinate[
 }
 
 
-// Basic check of shape will be 'out of bound' on next move.
-export function coordinateLimitForShape(shape: Shape): boolean {
-    return shape.coordinateList.some(coordinate =>
-        coordinate.x_axis > X_AXIS_DIMENTION - 1 || coordinate.y_axis > Y_AXIS_DIMENTION - 1 ||
-        coordinate.x_axis < 0 || coordinate.y_axis < 0
-    )
-}
-
 // Returns true if any coordinate in shape is 'touching' the bottom stack.
 // True on coordinate y-axis - 1 to 'stack' on top.
+// TODO implement logic to avoid shape 'sticking' to stack when moving sideways
 export function isShapeTouchingStack(shape: Shape, stackCoordinates: Coordinate[]): boolean {
-    return shape.coordinateList.some(shapeCoordinates =>
+    return shape.collisionCoordinates.some(shapeCoordinates =>
         stackCoordinates.some(stackCoordinates =>
             shapeCoordinates.x_axis === stackCoordinates.x_axis &&
             shapeCoordinates.y_axis === stackCoordinates.y_axis - 1
@@ -73,40 +65,14 @@ export function isShapeTouchingStack(shape: Shape, stackCoordinates: Coordinate[
 // Returns true if any coordinate in shape is 'touching' bottom of the board.
 // True on coordinate y-axis -1 to 'stack' on bottom.
 export function isShapeAtBottomOfGameBoard(shape: Shape): boolean {
-    return shape.coordinateList.some(coordinate =>
+    return shape.collisionCoordinates.some(coordinate =>
         coordinate.y_axis === Y_AXIS_DIMENTION - 1
     )
-}
-
-// Helper function to generate new shapes.
-// TODO make shape hold color also?
-export function generateNewShape(): Shape {
-    return {
-        coordinateList: [
-            {x_axis: 4, y_axis: 0},
-            {x_axis: 4, y_axis: 1},
-            {x_axis: 5, y_axis: 0},
-            {x_axis: 5, y_axis: 1},
-        ]
-    }
 }
 
 // Generate L shape for testing
 export function generateLShape(): Shape {
     return {
-        coordinateList: [
-            {x_axis: 4, y_axis: 0},
-            {x_axis: 4, y_axis: 1},
-            {x_axis: 4, y_axis: 2},
-            {x_axis: 5, y_axis: 2},
-        ]
-    }
-}
-
-// Generate L shape for testing
-export function generateLShapeV2(): ShapeV2 {
-    return {
-        // Padding for shape
         coordinates: [
             {x_axis: 3, y_axis: 0},
             {x_axis: 3, y_axis: 1},
@@ -125,49 +91,59 @@ export function generateLShapeV2(): ShapeV2 {
             {x_axis: 5, y_axis: 2},
         ],
         pivotPointCoordinate: 4,
+        color: Color.ORANGE
     }
 }
 
-// new x = pivot x + (Y - pivot Y)
-// nex = pivot y - (x - pivot x)
-// TODO clean up this mess, looks like shit unfortunately
-export function rotateLshapeV2(shape: ShapeV2): ShapeV2 {
+export function generateOShape(): Shape {
+    return {
+        coordinates: [
+            {x_axis: 3, y_axis: 0},
+            {x_axis: 3, y_axis: 1},
+            {x_axis: 3, y_axis: 2},
+            {x_axis: 4, y_axis: 0},
+            {x_axis: 4, y_axis: 1},
+            {x_axis: 4, y_axis: 2},
+            {x_axis: 5, y_axis: 0},
+            {x_axis: 5, y_axis: 1},
+            {x_axis: 5, y_axis: 2},
+            {x_axis: 6, y_axis: 0},
+            {x_axis: 6, y_axis: 1},
+            {x_axis: 6, y_axis: 2},
+        ],
+        collisionCoordinates: [
+            {x_axis: 4, y_axis: 0},
+            {x_axis: 4, y_axis: 1},
+            {x_axis: 5, y_axis: 0},
+            {x_axis: 5, y_axis: 1},
+        ],
+        pivotPointCoordinate: 0,
+        color: Color.YELLOW
+    }
+}
+
+/**
+ * Simple rotate around pivot algorithm:
+ * new_x = pivot.x - (y - pivot.y)
+ * new_y = pivot.y + (x - pivot.x)
+ * Hardcoded skip rotate on shape that does not need rotation (O)
+ * */
+export function rotateShape(shape: Shape): Shape {
+    if (shape.pivotPointCoordinate == 0 ) return shape
+
     const pivotCoordinate = shape.coordinates[shape.pivotPointCoordinate]
-    console.log('Pivot coordinate', pivotCoordinate)
     return {
         coordinates: shape.coordinates,
         collisionCoordinates: shape.collisionCoordinates.map(coordinate => {
-            const rotatedX = pivotCoordinate.x_axis -  (coordinate.y_axis - pivotCoordinate.y_axis)
-            const rotatedY = pivotCoordinate.y_axis +  (coordinate.x_axis - pivotCoordinate.x_axis)
+            const new_x = pivotCoordinate.x_axis -  (coordinate.y_axis - pivotCoordinate.y_axis)
+            const new_y = pivotCoordinate.y_axis +  (coordinate.x_axis - pivotCoordinate.x_axis)
             return {
-                x_axis: rotatedX,
-                y_axis: rotatedY
+                x_axis: new_x,
+                y_axis: new_y
             }
         }),
-        pivotPointCoordinate: shape.pivotPointCoordinate
-    }
-}
-
-
-// Rotates the L-shape 90 degrees if possible ( without surpassing the board limits )
-// Simple math formula from geometry (x, y) - > (y, -x).
-// Add 9 to x-coordinate and 0 to y coordinate to adjust for no negative coordinates
-export function rotateLShape(shape: Shape): Shape {
-    const pivot = shape.coordinateList[3]
-    console.log('Pivot point', pivot)
-    return {
-        coordinateList: shape.coordinateList.map(coordinate => {
-            const translatedX = coordinate.x_axis = pivot.x_axis
-            const translatedY = coordinate.y_axis = pivot.y_axis
-
-            const rotatedX = translatedY
-            const rotatedY = -translatedX
-            return {
-                x_axis: rotatedX + pivot.x_axis,
-                y_axis: (rotatedY + pivot.y_axis * -1) + 9
-                // y_axis: (coordinate.x_axis * -1) + 9,
-            }
-        })
+        pivotPointCoordinate: shape.pivotPointCoordinate,
+        color: shape.color,
     }
 }
 
@@ -184,12 +160,6 @@ export function numberOfRowsToClear(stackCoordinates: Coordinate[]): boolean {
             bottomRowCoordinates.y_axis === coordinate.y_axis
         )
     )
-}
-
-
-// TODO implement
-export function adjustStackAfterRowClear(stackCoordinates: Coordinate[]): Coordinate[] {
-    return []
 }
 
 export const BOTTOM_ROW_COORDINATES = {

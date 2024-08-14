@@ -4,20 +4,17 @@ export interface Coordinate {
 }
 
 export interface Shape {
-    coordinateList: Coordinate[]
-    // color: Color
-}
-
-export interface ShapeV2 {
     coordinates: Coordinate[]
     collisionCoordinates: Coordinate[],
-    pivotPointCoordinate: number , // Should always be in center of coordinates
+    pivotPointCoordinate: number,
+    color: Color
 }
 
-// TODO use this mayhaps
+// TODO implement different colors for different shapes
 export enum Color {
-    WHITE,
+    TEAL,
     BLUE,
+    ORANGE,
     RED,
     GREEN,
     YELLOW,

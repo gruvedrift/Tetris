@@ -1,20 +1,16 @@
 import styles from './GameBoard.module.scss';
 import React, {useEffect, useState} from "react";
 import {
-    BOTTOM_ROW_COORDINATES, collisionCoordinateOutOfBounds, coordinateLimit,
-    coordinateLimitForShape, generateLShape, generateLShapeV2,
-    generateNewShape,
+    BOTTOM_ROW_COORDINATES, collisionCoordinateOutOfBounds,
+    generateLShape, generateOShape,
     isShapeAtBottomOfGameBoard,
     isShapeTouchingStack,
-    numberOfRowsToClear, rotateLShape, rotateLshapeV2, updateCoordinatesOnPlayerMove
+    numberOfRowsToClear, rotateShape, updateCoordinatesOnPlayerMove
 } from "../assets/Utils";
 import GridCell from "../GridCell/GridCell";
 import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
-import {Color, Coordinate, Shape, ShapeV2} from "../assets/types.tsx";
+import { Coordinate, Shape} from "../assets/types.tsx";
 
-// TODO move to types.ts
-
-// TODO consider adding useMemo in order to not re-render the whole fucking page each time
 const GameBoard: React.FC = () => {
     return (
         <div className={styles.gameboard}>
@@ -26,45 +22,26 @@ const GameBoard: React.FC = () => {
 export default GameBoard
 
 // TODO reverse the grid so that 0,0 is in the bottom left and 9,9 is in the upper right
-// Most of the game logic happens within this grid component
 const Grid: React.FC = () => {
 
-    const test_stack_shape: Shape = {
-        coordinateList: [
-            {x_axis: 4, y_axis: 8},
-            {x_axis: 5, y_axis: 8},
-            {x_axis: 4, y_axis: 9},
-            {x_axis: 5, y_axis: 9},
-        ]
-    }
-    const test_shape_square: Shape = {
-        coordinateList: [
-            {x_axis: 8, y_axis: 2},
-            {x_axis: 9, y_axis: 2},
-            {x_axis: 8, y_axis: 3},
-            {x_axis: 9, y_axis: 3},
-        ]
-    }
-
-
     // State to hold the currently active ' moving ' shape
-    const [activeShape, setActiveShape] = useState<Shape>({coordinateList: []})
+    const [activeShapeV2, setActiveShapeV2] = useState<Shape>(generateOShape)
+
     // State to hold the 'stack' of tiles at the bottom of the game board.
     const [stackCoordinates, setStackCoordinates] = useState<Coordinate[]>([])
 
-    // New and improoved??
-    const [activeShapeV2, setActiveShapeV2] = useState<ShapeV2>(
-        // {coordinates: [], collisionCoordinates: [], pivotPointCoordinate: 0}
-        generateLShapeV2
-    )
 
 
+    /*
+    * Handles updating x-axis coordinates for the active shape on game board.
+    * Checks for out of bounds ( GameBoard x-axis limit )
+    * **/
     const handleRotateShape = (event: KeyboardEvent) => {
         setActiveShapeV2(prevState => {
 
             let updatedCoordinates: Coordinate[]
             let updatedCollisionCoordinates: Coordinate[]
-            const rotatedShape = rotateLshapeV2(prevState)
+            const rotatedShape = rotateShape(prevState)
             switch (event.key) {
                 case 'ArrowUp':
                     updatedCoordinates = rotatedShape.coordinates
@@ -100,7 +77,8 @@ const Grid: React.FC = () => {
                 return {
                     coordinates: updatedCoordinates,
                     collisionCoordinates: updatedCollisionCoordinates,
-                    pivotPointCoordinate: prevState.pivotPointCoordinate
+                    pivotPointCoordinate: prevState.pivotPointCoordinate,
+                    color: prevState.color
                 }
             } else {
                 return prevState
@@ -108,70 +86,23 @@ const Grid: React.FC = () => {
         })
     }
 
-    // TODO add some key event for rotating shape
-    /*
-    * Handles updating x-axis coordinates for the active shape on game board.
-    * Checks for out of bounds ( GameBoard x-axis limit )
-    * **/
-    const handleMoveShape = (event: KeyboardEvent) => {
-
-        setActiveShape(prevState => {
-            let updatedCoordinates: Coordinate[]
-            switch (event.key) {
-                case 'ArrowLeft':
-                    updatedCoordinates = prevState.coordinateList.map(coordinate => (
-                        {...coordinate, x_axis: coordinate.x_axis - 1}
-                    ))
-                    break;
-                case 'ArrowRight':
-                    updatedCoordinates = prevState.coordinateList.map(coordinate => {
-                        return {...coordinate, x_axis: coordinate.x_axis + 1}
-                    })
-                    break;
-                case 'ArrowDown':
-                    updatedCoordinates = prevState.coordinateList.map(coordinate => (
-                        {...coordinate, y_axis: coordinate.y_axis + 1}
-                    ))
-                    break;
-                case 'ArrowUp':
-                    updatedCoordinates = prevState.coordinateList.map(coordinate => (
-                        {...coordinate, y_axis: coordinate.y_axis - 1}
-                    ))
-                    break;
-                case 'x':
-                    updatedCoordinates = rotateLShape(prevState).coordinateList
-                    break;
-                default:
-                    return prevState
-
-            }
-
-            // Only update coordinates if shape is not out of bounds on next arrow move
-            if (!coordinateLimitForShape({coordinateList: updatedCoordinates})) {
-                // console.log('Update coordinates are: ', updatedCoordinates)
-                return {coordinateList: updatedCoordinates}
-            } else {
-                return prevState
-            }
-        });
-    };
-
     // Add coordinates to stack if they have reached the bottom of the game grid. Also, empty the active shape state
     const addToStack = (shape: Shape) => {
         if (isShapeTouchingStack(shape, stackCoordinates) || isShapeAtBottomOfGameBoard(shape)) {
             console.log('Touching!!!!')
-            const updateState = stackCoordinates.concat(shape.coordinateList)
+            const updateState = stackCoordinates.concat(shape.collisionCoordinates)
             setStackCoordinates(updateState)
-            setActiveShape({coordinateList: []})
+            setActiveShapeV2(generateLShape)
         }
     }
 
     const createNewShape = () => {
-        if (activeShape.coordinateList.length === 0) {
-            setActiveShape(generateLShape)
+        if (activeShapeV2.coordinates.length === 0) {
+            setActiveShapeV2(generateLShape)
         }
     }
 
+    // TODO should consider counting up number of potential rows to clear in one swoop
     const clearBottomRow = () => {
         if (numberOfRowsToClear(stackCoordinates)) {
             console.log('Clear bottom!!!')
@@ -190,13 +121,12 @@ const Grid: React.FC = () => {
 
 
     useEffect(() => {
-        // window.addEventListener('keydown', handleMoveShape)
         window.addEventListener('keydown', handleRotateShape)
-        // addToStack(activeShape)
-        // createNewShape()
-        // clearBottomRow()
+        // TODO fix this hardcoded stack logic
+        addToStack(activeShapeV2)
+        createNewShape()
+        clearBottomRow()
         return () => {
-            // window.removeEventListener('keydown', handleMoveShape);
             window.removeEventListener('keydown', handleRotateShape)
         }
     }, [activeShapeV2])
@@ -213,11 +143,6 @@ const Grid: React.FC = () => {
                 coordinate.x_axis === j && coordinate.y_axis === i
             )
 
-            // Calculate if coordinate is matching the active shape state coordinates
-            const activeShapeCoordinate = activeShape.coordinateList.some(coordinate =>
-                coordinate.x_axis === j && coordinate.y_axis === i
-            )
-
             const collisionCell = activeShapeV2.collisionCoordinates.some(coordinate =>
                 coordinate.x_axis === j && coordinate.y_axis === i
             )
@@ -225,6 +150,7 @@ const Grid: React.FC = () => {
             const paddingCell = activeShapeV2.coordinates.some(coordinate =>
                 coordinate.x_axis === j && coordinate.y_axis === i
             )
+
             // Could need to actually move all the 'active' cells to the left and the right when < >
             // Need then to 'lock' the active in shape cells that has reached the bottom of the game screen.
 
