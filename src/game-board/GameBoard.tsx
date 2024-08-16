@@ -2,7 +2,7 @@ import styles from './GameBoard.module.scss';
 import React, {useEffect, useState} from "react";
 import {
     BOTTOM_ROW_COORDINATES, collisionCoordinateOutOfBounds,
-    generateLShape, generateOShape,
+    generateLShape, generateNewRandomShape, generateOShape,
     isShapeAtBottomOfGameBoard,
     isShapeTouchingStack,
     numberOfRowsToClear, rotateShape, updateCoordinatesOnPlayerMove
@@ -25,7 +25,7 @@ export default GameBoard
 const Grid: React.FC = () => {
 
     // State to hold the currently active ' moving ' shape
-    const [activeShapeV2, setActiveShapeV2] = useState<Shape>(generateOShape)
+    const [activeShapeV2, setActiveShapeV2] = useState<Shape>(generateLShape)
 
     // State to hold the 'stack' of tiles at the bottom of the game board.
     const [stackCoordinates, setStackCoordinates] = useState<Coordinate[]>([])
@@ -92,13 +92,14 @@ const Grid: React.FC = () => {
             console.log('Touching!!!!')
             const updateState = stackCoordinates.concat(shape.collisionCoordinates)
             setStackCoordinates(updateState)
-            setActiveShapeV2(generateLShape)
+            setActiveShapeV2(generateNewRandomShape)
         }
     }
 
+    // Might never need this
     const createNewShape = () => {
         if (activeShapeV2.coordinates.length === 0) {
-            setActiveShapeV2(generateLShape)
+            setActiveShapeV2(generateNewRandomShape)
         }
     }
 
@@ -151,6 +152,8 @@ const Grid: React.FC = () => {
                 coordinate.x_axis === j && coordinate.y_axis === i
             )
 
+            const shapeColor = activeShapeV2.color
+
             // Could need to actually move all the 'active' cells to the left and the right when < >
             // Need then to 'lock' the active in shape cells that has reached the bottom of the game screen.
 
@@ -161,6 +164,7 @@ const Grid: React.FC = () => {
                     collisionCell={collisionCell}
                     stackCell={stackCoordinate}
                     paddingCell={paddingCell}
+                    shapeColor={shapeColor}
                 />
             )
         }

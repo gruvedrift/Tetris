@@ -1,5 +1,6 @@
 import React from "react";
 import {getStyling} from "../assets/Utils";
+import {Color} from "../assets/types";
 
 interface GridCellProps {
   row: number,
@@ -7,11 +8,12 @@ interface GridCellProps {
   collisionCell: boolean,
   stackCell: boolean,
   paddingCell: boolean,
+  shapeColor: Color
 }
 
 const GridCell: React.FC<GridCellProps> = (cellProps) => {
-  const {row, column, collisionCell, stackCell, paddingCell} = cellProps
-  const styling = getStyling(collisionCell, stackCell, paddingCell)
+  const {row, column, collisionCell, stackCell, paddingCell, shapeColor} = cellProps
+  const styling = getStyling(collisionCell, stackCell, paddingCell, shapeColor)
 
   return (
     <div
@@ -22,5 +24,5 @@ const GridCell: React.FC<GridCellProps> = (cellProps) => {
   )
 }
 
-export default  GridCell
+export default GridCell
 

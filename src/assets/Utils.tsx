@@ -20,25 +20,36 @@ export function updateCoordinatesOnPlayerMove(
     return {updatedCoordinates, updatedCollisionCoordinates}
 }
 
+
 // Helper function to make the ternary styling easier to read
-export function getStyling(collisionCell: boolean, stackCell: boolean, paddingCell: boolean): string {
+// TODO this MUST be refactored find de wey
+export function getStyling(collisionCell: boolean, stackCell: boolean, paddingCell: boolean, shapeColor: Color): string {
     switch (true) {
-        case paddingCell && stackCell:
-            return styles.stackcell
-        case collisionCell && paddingCell:
-            return styles.collisioncell
-        case !collisionCell && paddingCell:
-            return styles.paddingcell
-        case collisionCell && stackCell: // Bottom of the page.
-            return styles.stackcell
-        case !collisionCell && stackCell: // Cell or shape has reached bottom, change color.
-            return styles.stackcell
-        case collisionCell && !stackCell: // Active cell moving around with arrows.
-            return styles.collisioncell
-        case !collisionCell && !stackCell: // Regular background cell, no special styling.
-            return styles.gridcell
-        default:
-            return styles.gridcell // Default case is just give regular styling
+        case collisionCell && stackCell && paddingCell: // Impossible case
+            break;
+        case collisionCell && stackCell && !paddingCell: // Just reached bottom of the page
+            return styles['stack-cell']
+        case collisionCell && !stackCell && paddingCell: // If cell are both, set to collision cell
+            switch(shapeColor) {
+                case Color.ORANGE:
+                    return styles['l-shape-color']
+                case Color.BLUE:
+                    return styles['j-shape-color']
+                case Color.YELLOW: {
+                    return styles['s-shape-color']
+                }
+            }
+            break;
+        case collisionCell && !stackCell && !paddingCell: // Impossible case ( yet )
+            break;
+        case !collisionCell && stackCell && paddingCell: // Impossible case
+            break
+        case !collisionCell && stackCell && !paddingCell: // Stack cell
+            return styles['stack-cell']
+        case !collisionCell && !stackCell && paddingCell: // Regular padding cell
+            return styles['padding-cell']
+        case !collisionCell && !stackCell && !paddingCell: // Regular background cell
+            return styles['grid-cell']
     }
 }
 
@@ -68,6 +79,19 @@ export function isShapeAtBottomOfGameBoard(shape: Shape): boolean {
     return shape.collisionCoordinates.some(coordinate =>
         coordinate.y_axis === Y_AXIS_DIMENTION - 1
     )
+}
+
+
+
+// Pick new random shape from list
+// TODO implement for other shapes; I, J, S, T, Z
+export function generateNewRandomShape(): Shape {
+    const shapeList = ['L', 'O']
+    const pickedLetter = shapeList[Math.floor(Math.random() * shapeList.length)]
+    switch (pickedLetter){
+        case 'L': return generateLShape()
+        case 'O': return generateOShape()
+    }
 }
 
 // Generate L shape for testing
