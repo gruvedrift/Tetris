@@ -12,7 +12,7 @@ export interface Shape {
 
 // TODO implement different colors for different shapes
 export enum Color {
-    TEAL,
+    CYAN,
     BLUE,
     ORANGE,
     RED,

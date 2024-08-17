@@ -1,4 +1,4 @@
-.grid-cell {
+.gridCell {
   background-color: grey;
   //border: 1px solid black;
   width: 100%;
@@ -6,50 +6,43 @@
   text-align: center;
 }
 
-.collision-cell {
+.collisionCell {
   background-color: deepskyblue;
 }
 
-.stack-cell {
+.stackCell {
   background-color: black;
 }
 
-.padding-cell {
+.paddingCell {
   background-color: white;
 }
 
-// L-shape
-.l-shape-color {
+.lShape {
   background-color: orange;
 }
 
-// O-shape
-.o-shape-color {
+.oShape {
   background-color: yellow;
 }
 
-// I-shape
-.i-shape-color {
-  background-color: teal;
+.iShape {
+  background-color: cyan;
 }
 
-// J-shape
-.j-shape-color {
+.jShape {
   background-color: mediumblue;
 }
 
-// S-shape
-.s-shape-color {
+.sShape {
   background-color: greenyellow;
 }
 
-// T-shape
-.t-shape-color {
+.tShape {
   background-color: deeppink;
 }
 
-// Z-shape
-.z-shape-color {
+.zShape {
   background-color: red;
 }
 

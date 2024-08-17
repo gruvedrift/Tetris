@@ -1,8 +1,8 @@
 import styles from './GameBoard.module.scss';
 import React, {useEffect, useState} from "react";
 import {
-    BOTTOM_ROW_COORDINATES, collisionCoordinateOutOfBounds,
-    generateLShape, generateNewRandomShape, generateOShape,
+    BOTTOM_ROW_COORDINATES, collisionCoordinateOutOfBounds, generateIShape, generateJShape,
+    generateLShape, generateNewRandomShape, generateOShape, generateSShape, generateTShape, generateZShape,
     isShapeAtBottomOfGameBoard,
     isShapeTouchingStack,
     numberOfRowsToClear, rotateShape, updateCoordinatesOnPlayerMove
@@ -25,7 +25,7 @@ export default GameBoard
 const Grid: React.FC = () => {
 
     // State to hold the currently active ' moving ' shape
-    const [activeShapeV2, setActiveShapeV2] = useState<Shape>(generateLShape)
+    const [activeShapeV2, setActiveShapeV2] = useState<Shape>(generateNewRandomShape)
 
     // State to hold the 'stack' of tiles at the bottom of the game board.
     const [stackCoordinates, setStackCoordinates] = useState<Coordinate[]>([])
@@ -97,11 +97,11 @@ const Grid: React.FC = () => {
     }
 
     // Might never need this
-    const createNewShape = () => {
-        if (activeShapeV2.coordinates.length === 0) {
-            setActiveShapeV2(generateNewRandomShape)
-        }
-    }
+    // const createNewShape = () => {
+    //     if (activeShapeV2.coordinates.length === 0) {
+    //         setActiveShapeV2(generateNewRandomShape)
+    //     }
+    // }
 
     // TODO should consider counting up number of potential rows to clear in one swoop
     const clearBottomRow = () => {
@@ -125,7 +125,7 @@ const Grid: React.FC = () => {
         window.addEventListener('keydown', handleRotateShape)
         // TODO fix this hardcoded stack logic
         addToStack(activeShapeV2)
-        createNewShape()
+        // createNewShape()
         clearBottomRow()
         return () => {
             window.removeEventListener('keydown', handleRotateShape)

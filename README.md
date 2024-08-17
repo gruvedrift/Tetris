@@ -1,4 +1,8 @@
 # React + TypeScript + Vite + JSX
+
+### Tetris
+Simple clone of Tetris with a very basic rotation system. Wall kicking will not be implemented. 
+
 ```text
 Terror-Duck TM 
                          ___

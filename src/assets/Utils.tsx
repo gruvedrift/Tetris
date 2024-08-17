@@ -1,5 +1,4 @@
 // Helper function to check whether number has reached max coordinate
-import styles from '../GridCell/GridCelll.module.scss'
 import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
 import {Color, Coordinate, Shape} from "./types";
 
@@ -18,39 +17,6 @@ export function updateCoordinatesOnPlayerMove(
         { x_axis: coordinate.x_axis + x_adjust ,y_axis: coordinate.y_axis + y_adjust }
     ))
     return {updatedCoordinates, updatedCollisionCoordinates}
-}
-
-
-// Helper function to make the ternary styling easier to read
-// TODO this MUST be refactored find de wey
-export function getStyling(collisionCell: boolean, stackCell: boolean, paddingCell: boolean, shapeColor: Color): string {
-    switch (true) {
-        case collisionCell && stackCell && paddingCell: // Impossible case
-            break;
-        case collisionCell && stackCell && !paddingCell: // Just reached bottom of the page
-            return styles['stack-cell']
-        case collisionCell && !stackCell && paddingCell: // If cell are both, set to collision cell
-            switch(shapeColor) {
-                case Color.ORANGE:
-                    return styles['l-shape-color']
-                case Color.BLUE:
-                    return styles['j-shape-color']
-                case Color.YELLOW: {
-                    return styles['s-shape-color']
-                }
-            }
-            break;
-        case collisionCell && !stackCell && !paddingCell: // Impossible case ( yet )
-            break;
-        case !collisionCell && stackCell && paddingCell: // Impossible case
-            break
-        case !collisionCell && stackCell && !paddingCell: // Stack cell
-            return styles['stack-cell']
-        case !collisionCell && !stackCell && paddingCell: // Regular padding cell
-            return styles['padding-cell']
-        case !collisionCell && !stackCell && !paddingCell: // Regular background cell
-            return styles['grid-cell']
-    }
 }
 
 export function collisionCoordinateOutOfBounds(collisionCoordinates: Coordinate[]): boolean {
@@ -86,15 +52,74 @@ export function isShapeAtBottomOfGameBoard(shape: Shape): boolean {
 // Pick new random shape from list
 // TODO implement for other shapes; I, J, S, T, Z
 export function generateNewRandomShape(): Shape {
-    const shapeList = ['L', 'O']
+    const shapeList = ['I','J','L','O','S','T','Z']
     const pickedLetter = shapeList[Math.floor(Math.random() * shapeList.length)]
     switch (pickedLetter){
+        case 'I': return generateIShape()
+        case 'J': return generateJShape()
         case 'L': return generateLShape()
         case 'O': return generateOShape()
+        case 'S': return generateSShape()
+        case 'T': return generateTShape()
+        case 'Z': return generateZShape()
     }
 }
 
-// Generate L shape for testing
+export function generateIShape(): Shape {
+    return {
+        coordinates: [
+            {x_axis: 3, y_axis: 0},
+            {x_axis: 3, y_axis: 1},
+            {x_axis: 3, y_axis: 2},
+            {x_axis: 3, y_axis: 3},
+            {x_axis: 4, y_axis: 0},
+            {x_axis: 4, y_axis: 1},
+            {x_axis: 4, y_axis: 2},
+            {x_axis: 4, y_axis: 3},
+            {x_axis: 5, y_axis: 0},
+            {x_axis: 5, y_axis: 1},
+            {x_axis: 5, y_axis: 2},
+            {x_axis: 5, y_axis: 3},
+            {x_axis: 6, y_axis: 0},
+            {x_axis: 6, y_axis: 1},
+            {x_axis: 6, y_axis: 2},
+            {x_axis: 6, y_axis: 3},
+        ],
+        collisionCoordinates: [
+            {x_axis: 3, y_axis: 1},
+            {x_axis: 4, y_axis: 1},
+            {x_axis: 5, y_axis: 1},
+            {x_axis: 6, y_axis: 1},
+        ],
+        pivotPointCoordinate: 6,
+        color: Color.CYAN
+    }
+}
+
+export function generateJShape(): Shape {
+    return {
+        coordinates: [
+            {x_axis: 3, y_axis: 0},
+            {x_axis: 3, y_axis: 1},
+            {x_axis: 3, y_axis: 2},
+            {x_axis: 4, y_axis: 0},
+            {x_axis: 4, y_axis: 1},
+            {x_axis: 4, y_axis: 2},
+            {x_axis: 5, y_axis: 0},
+            {x_axis: 5, y_axis: 1},
+            {x_axis: 5, y_axis: 2},
+        ],
+        collisionCoordinates: [
+            {x_axis: 4, y_axis: 0},
+            {x_axis: 4, y_axis: 1},
+            {x_axis: 4, y_axis: 2},
+            {x_axis: 3, y_axis: 2},
+        ],
+        pivotPointCoordinate: 4,
+        color: Color.BLUE
+    }
+}
+
 export function generateLShape(): Shape {
     return {
         coordinates: [
@@ -146,6 +171,78 @@ export function generateOShape(): Shape {
     }
 }
 
+export function generateSShape(): Shape {
+    return {
+        coordinates: [
+            {x_axis: 3, y_axis: 0},
+            {x_axis: 3, y_axis: 1},
+            {x_axis: 3, y_axis: 2},
+            {x_axis: 4, y_axis: 0},
+            {x_axis: 4, y_axis: 1},
+            {x_axis: 4, y_axis: 2},
+            {x_axis: 5, y_axis: 0},
+            {x_axis: 5, y_axis: 1},
+            {x_axis: 5, y_axis: 2},
+        ],
+        collisionCoordinates: [
+            {x_axis: 4, y_axis: 0},
+            {x_axis: 5, y_axis: 0},
+            {x_axis: 3, y_axis: 1},
+            {x_axis: 4, y_axis: 1},
+        ],
+        pivotPointCoordinate: 4,
+        color: Color.GREEN
+    }
+}
+
+export function generateTShape(): Shape {
+    return {
+        coordinates: [
+            {x_axis: 3, y_axis: 0},
+            {x_axis: 3, y_axis: 1},
+            {x_axis: 3, y_axis: 2},
+            {x_axis: 4, y_axis: 0},
+            {x_axis: 4, y_axis: 1},
+            {x_axis: 4, y_axis: 2},
+            {x_axis: 5, y_axis: 0},
+            {x_axis: 5, y_axis: 1},
+            {x_axis: 5, y_axis: 2},
+        ],
+        collisionCoordinates: [
+            {x_axis: 4, y_axis: 0},
+            {x_axis: 3, y_axis: 1},
+            {x_axis: 4, y_axis: 1},
+            {x_axis: 5, y_axis: 1},
+        ],
+        pivotPointCoordinate: 4,
+        color: Color.PURPLE
+    }
+}
+
+export function generateZShape(): Shape {
+    return {
+        coordinates: [
+            {x_axis: 3, y_axis: 0},
+            {x_axis: 3, y_axis: 1},
+            {x_axis: 3, y_axis: 2},
+            {x_axis: 4, y_axis: 0},
+            {x_axis: 4, y_axis: 1},
+            {x_axis: 4, y_axis: 2},
+            {x_axis: 5, y_axis: 0},
+            {x_axis: 5, y_axis: 1},
+            {x_axis: 5, y_axis: 2},
+        ],
+        collisionCoordinates: [
+            {x_axis: 3, y_axis: 0},
+            {x_axis: 4, y_axis: 0},
+            {x_axis: 4, y_axis: 1},
+            {x_axis: 5, y_axis: 1},
+        ],
+        pivotPointCoordinate: 4,
+        color: Color.RED
+    }
+}
+
 /**
  * Simple rotate around pivot algorithm:
  * new_x = pivot.x - (y - pivot.y)
@@ -153,6 +250,7 @@ export function generateOShape(): Shape {
  * Hardcoded skip rotate on shape that does not need rotation (O)
  * */
 export function rotateShape(shape: Shape): Shape {
+    if (shape.pivotPointCoordinate == 6 ) return rotateIShape(shape)
     if (shape.pivotPointCoordinate == 0 ) return shape
 
     const pivotCoordinate = shape.coordinates[shape.pivotPointCoordinate]
@@ -169,6 +267,27 @@ export function rotateShape(shape: Shape): Shape {
         pivotPointCoordinate: shape.pivotPointCoordinate,
         color: shape.color,
     }
+}
+
+// Hardcoded 'virtual' center of 4x4 grid for I-Shape
+export function rotateIShape(shape: Shape): Shape {
+    const pivot_x = shape.coordinates[shape.pivotPointCoordinate].x_axis + 0.5;
+    const pivot_y = shape.coordinates[shape.pivotPointCoordinate].y_axis - 0.5
+
+    return {
+        coordinates: shape.coordinates,
+        collisionCoordinates: shape.collisionCoordinates.map(coordinate => {
+            const new_x = pivot_x - (coordinate.y_axis - pivot_y);
+            const new_y = pivot_y + (coordinate.x_axis - pivot_x);
+
+            return {
+                x_axis: Math.round(new_x),
+                y_axis: Math.round(new_y),
+            };
+        }),
+        pivotPointCoordinate: shape.pivotPointCoordinate, // Can stay as-is
+        color: shape.color,
+    };
 }
 
 
