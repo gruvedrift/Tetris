@@ -1,8 +1,8 @@
 import styles from './GameBoard.module.scss';
 import React, {useEffect, useState} from "react";
 import {
-    BOTTOM_ROW_COORDINATES, collisionCoordinateOutOfBounds, generateIShape, generateJShape,
-    generateLShape, generateNewRandomShape, generateOShape, generateSShape, generateTShape, generateZShape,
+    collisionCoordinateOutOfBounds,
+    generateNewRandomShape,
     isShapeAtBottomOfGameBoard,
     isShapeTouchingStack,
     numberOfRowsToClear, rotateShape, updateCoordinatesOnPlayerMove
@@ -96,21 +96,21 @@ const Grid: React.FC = () => {
         }
     }
 
-    // Might never need this
-    // const createNewShape = () => {
-    //     if (activeShapeV2.coordinates.length === 0) {
-    //         setActiveShapeV2(generateNewRandomShape)
-    //     }
-    // }
-
     // TODO should consider counting up number of potential rows to clear in one swoop
+    // TODO must move rows above cleared x number of y-coordinates down
+    // TODO handle case where maybe every other row is cleared
+    // TODO handle multiple rows being cleared adjusts stock accordingly and settle to the bottom.
+    // Could potentially keep track of a single row on stack and move it based on how many rows below itself was cleared.
+    // ... fuck me dude
     const clearBottomRow = () => {
-        if (numberOfRowsToClear(stackCoordinates)) {
-            console.log('Clear bottom!!!')
-            const updatedStackCoordinates = stackCoordinates.filter(coordinate =>
-                !BOTTOM_ROW_COORDINATES.coordinateList.some(bottomRowCoordinate =>
-                    coordinate.x_axis === bottomRowCoordinate.x_axis &&
-                    coordinate.y_axis === bottomRowCoordinate.y_axis
+        const coordinatesToClear = numberOfRowsToClear(stackCoordinates)
+        const clearedRows = coordinatesToClear / 10
+        if (coordinatesToClear.length > 0) {
+            console.log('clearing row(s)!!!')
+            const updatedStackCoordinates = stackCoordinates.filter(stackCoordinate =>
+                !coordinatesToClear.some(coordinateToClear =>
+                    stackCoordinate.x_axis === coordinateToClear.x_axis &&
+                    stackCoordinate.y_axis === coordinateToClear.y_axis
                 )
             )
             updatedStackCoordinates.forEach(coordinate =>
@@ -126,7 +126,7 @@ const Grid: React.FC = () => {
         // TODO fix this hardcoded stack logic
         addToStack(activeShapeV2)
         // createNewShape()
-        clearBottomRow()
+        // clearBottomRow()
         return () => {
             window.removeEventListener('keydown', handleRotateShape)
         }

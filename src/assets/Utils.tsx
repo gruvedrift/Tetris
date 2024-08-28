@@ -31,6 +31,7 @@ export function collisionCoordinateOutOfBounds(collisionCoordinates: Coordinate[
 // True on coordinate y-axis - 1 to 'stack' on top.
 // TODO implement logic to avoid shape 'sticking' to stack when moving sideways
 export function isShapeTouchingStack(shape: Shape, stackCoordinates: Coordinate[]): boolean {
+    // Find which coordinates are on the top of the stack for each column, should only check if they are touching them
     return shape.collisionCoordinates.some(shapeCoordinates =>
         stackCoordinates.some(stackCoordinates =>
             shapeCoordinates.x_axis === stackCoordinates.x_axis &&
@@ -50,7 +51,6 @@ export function isShapeAtBottomOfGameBoard(shape: Shape): boolean {
 
 
 // Pick new random shape from list
-// TODO implement for other shapes; I, J, S, T, Z
 export function generateNewRandomShape(): Shape {
     const shapeList = ['I','J','L','O','S','T','Z']
     const pickedLetter = shapeList[Math.floor(Math.random() * shapeList.length)]
@@ -291,31 +291,39 @@ export function rotateIShape(shape: Shape): Shape {
 }
 
 
-// Helper function to return how many, if any rows should be cleared from the board.
-// Number represents the number of rows from the bottom to be cleared.
-// -1 represents no row
-// temporarily set to return true / false and clear bottom.
 // TODO extend to clear multiple rows at a time to manage some scoring system for multiple rows on stack solved.
-export function numberOfRowsToClear(stackCoordinates: Coordinate[]): boolean {
-    return BOTTOM_ROW_COORDINATES.coordinateList.every(bottomRowCoordinates =>
-        stackCoordinates.some(coordinate =>
-            bottomRowCoordinates.x_axis === coordinate.x_axis &&
-            bottomRowCoordinates.y_axis === coordinate.y_axis
-        )
-    )
+// TODO search for rows bottom to top and clear any that has full row
+// TODO just return coordinates to remove from stack :))))
+export function numberOfRowsToClear(stackCoordinates: Coordinate[]): Coordinate[] {
+    console.log('Checking stack coordinates: ', stackCoordinates)
+    const rowList: Coordinate[] = []
+
+    // Check row by row
+    for(let row = 0 ; row < Y_AXIS_DIMENTION ; row++) {
+
+        const rowToCheck = generateRowCoordinates(row)
+        console.log()
+
+        if(rowToCheck.every(rowCoordinate =>
+          stackCoordinates.some(coordinate =>
+            rowCoordinate.x_axis === coordinate.x_axis &&
+            rowCoordinate.y_axis === coordinate.y_axis )
+        )){
+            rowList.push(...rowToCheck)
+        } else {
+            console.log('Compared with: ', rowToCheck)
+            console.log('Found no full row!!!')
+        }
+        console.log('Clear these coordinates: ', rowList)
+    }
+    return rowList
 }
 
-export const BOTTOM_ROW_COORDINATES = {
-    coordinateList: [
-        {x_axis: 0, y_axis: 9},
-        {x_axis: 1, y_axis: 9},
-        {x_axis: 2, y_axis: 9},
-        {x_axis: 3, y_axis: 9},
-        {x_axis: 4, y_axis: 9},
-        {x_axis: 5, y_axis: 9},
-        {x_axis: 6, y_axis: 9},
-        {x_axis: 7, y_axis: 9},
-        {x_axis: 8, y_axis: 9},
-        {x_axis: 9, y_axis: 9},
-    ]
+// Generate a row of coordinates given a row number.
+function generateRowCoordinates(rowNumber: number): Coordinate[] {
+    const coordinateList: Coordinate[] = []
+    for(let x = 0; x < X_AXIS_DIMENTION; x ++){
+        coordinateList.push({x_axis: x, y_axis: rowNumber})
+    }
+    return coordinateList
 }

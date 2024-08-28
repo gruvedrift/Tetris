@@ -20,3 +20,12 @@ export enum Color {
     YELLOW,
     PURPLE
 }
+
+// TODO cook up a structure for the stack. Just holding regular coordinates are too messy.
+export interface StackCoordinate extends Coordinate{
+    color: Color
+}
+
+export interface Stack {
+    coordinateList: StackCoordinate[]
+}
