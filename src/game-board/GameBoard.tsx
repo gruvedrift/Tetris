@@ -9,7 +9,8 @@ import {
 } from "../assets/Utils";
 import GridCell from "../GridCell/GridCell";
 import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
-import { Coordinate, Shape} from "../assets/types.tsx";
+import { Coordinate, Shape, StackCoordinate, Stack, Color} from "../assets/types.tsx";
+import {types} from "sass";
 
 const GameBoard: React.FC = () => {
     return (
@@ -29,6 +30,7 @@ const Grid: React.FC = () => {
 
     // State to hold the 'stack' of tiles at the bottom of the game board.
     const [stackCoordinates, setStackCoordinates] = useState<Coordinate[]>([])
+    console.log('These are the sack coordinates: ', stackCoordinates)
 
 
 
@@ -90,6 +92,17 @@ const Grid: React.FC = () => {
     const addToStack = (shape: Shape) => {
         if (isShapeTouchingStack(shape, stackCoordinates) || isShapeAtBottomOfGameBoard(shape)) {
             console.log('Touching!!!!')
+            const test: Stack = { coordinateList: []}
+            stackCoordinates.forEach(coordinate =>
+              test.coordinateList.push(
+                {
+                    x_axis: coordinate.x_axis,
+                    y_axis: coordinate.y_axis,
+                    color: shape.color
+                }
+              )
+            )
+
             const updateState = stackCoordinates.concat(shape.collisionCoordinates)
             setStackCoordinates(updateState)
             setActiveShapeV2(generateNewRandomShape)
@@ -126,7 +139,7 @@ const Grid: React.FC = () => {
         // TODO fix this hardcoded stack logic
         addToStack(activeShapeV2)
         // createNewShape()
-        // clearBottomRow()
+        clearBottomRow()
         return () => {
             window.removeEventListener('keydown', handleRotateShape)
         }

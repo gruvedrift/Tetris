@@ -7,8 +7,9 @@ export interface Shape {
     coordinates: Coordinate[]
     collisionCoordinates: Coordinate[],
     pivotPointCoordinate: number,
-    color: Color
+    color: Color,
 }
+
 
 // TODO implement different colors for different shapes
 export enum Color {
@@ -22,6 +23,7 @@ export enum Color {
 }
 
 // TODO cook up a structure for the stack. Just holding regular coordinates are too messy.
+// TODO copy the
 export interface StackCoordinate extends Coordinate{
     color: Color
 }
