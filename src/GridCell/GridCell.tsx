@@ -6,7 +6,7 @@ interface GridCellProps {
   row: number,
   column: number,
   collisionCell: boolean,
-  stackCell: boolean,
+  stackCell: Color,
   paddingCell: boolean,
   shapeColor: Color
 }
@@ -30,7 +30,8 @@ export default GridCell
 /*
 * Determine styling for cells on game board grid.
 * **/
-function getStyling(collisionCell: boolean, stackCell: boolean, paddingCell: boolean, shapeColor: Color): string {
+// TODO clean up this mess (^._.^) /
+function getStyling(collisionCell: boolean, stackCell: Color, paddingCell: boolean, shapeColor: Color): string {
   const conditions = {
     isStackCell: (collisionCell && stackCell && !paddingCell) || (!collisionCell && stackCell && !paddingCell),
     isShapeCell: collisionCell && !stackCell && paddingCell,
@@ -38,7 +39,7 @@ function getStyling(collisionCell: boolean, stackCell: boolean, paddingCell: boo
     isGridCell: !collisionCell && !stackCell && !paddingCell,
   }
   switch (true) {
-    case conditions.isStackCell: return styles.stackCell
+    case conditions.isStackCell: return getStylingForShape(stackCell)
     case conditions.isShapeCell: return getStylingForShape(shapeColor)
     case conditions.isPaddingCell: return styles.paddingCell
     case conditions.isGridCell: return  styles.gridCell

@@ -295,14 +295,13 @@ export function rotateIShape(shape: Shape): Shape {
 // TODO search for rows bottom to top and clear any that has full row
 // TODO just return coordinates to remove from stack :))))
 export function numberOfRowsToClear(stackCoordinates: Coordinate[]): Coordinate[] {
-    console.log('Checking stack coordinates: ', stackCoordinates)
+    // console.log('Checking stack coordinates: ', stackCoordinates)
     const rowList: Coordinate[] = []
 
     // Check row by row
     for(let row = 0 ; row < Y_AXIS_DIMENTION ; row++) {
 
         const rowToCheck = generateRowCoordinates(row)
-        console.log()
 
         if(rowToCheck.every(rowCoordinate =>
           stackCoordinates.some(coordinate =>
@@ -311,10 +310,10 @@ export function numberOfRowsToClear(stackCoordinates: Coordinate[]): Coordinate[
         )){
             rowList.push(...rowToCheck)
         } else {
-            console.log('Compared with: ', rowToCheck)
-            console.log('Found no full row!!!')
+            // console.log('Compared with: ', rowToCheck)
+            // console.log('Found no full row!!!')
         }
-        console.log('Clear these coordinates: ', rowList)
+        // console.log('Clear these coordinates: ', rowList)
     }
     return rowList
 }

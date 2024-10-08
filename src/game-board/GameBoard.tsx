@@ -27,10 +27,15 @@ const Grid: React.FC = () => {
 
     // State to hold the currently active ' moving ' shape
     const [activeShapeV2, setActiveShapeV2] = useState<Shape>(generateNewRandomShape)
+    console.log('This is the active shape', activeShapeV2)
 
     // State to hold the 'stack' of tiles at the bottom of the game board.
     const [stackCoordinates, setStackCoordinates] = useState<Coordinate[]>([])
     console.log('These are the sack coordinates: ', stackCoordinates)
+
+    // Test state to hold the new and improved stack
+    const [stack, setStack] = useState<Stack>({coordinateList:[]})
+    console.log('TEST STACK COORDINATES: ', stack)
 
 
 
@@ -89,11 +94,13 @@ const Grid: React.FC = () => {
     }
 
     // Add coordinates to stack if they have reached the bottom of the game grid. Also, empty the active shape state
+    // Best practice is to du functional state updates whenever state is dependent on previous state!!
     const addToStack = (shape: Shape) => {
         if (isShapeTouchingStack(shape, stackCoordinates) || isShapeAtBottomOfGameBoard(shape)) {
             console.log('Touching!!!!')
+            // TODO could move this to a separate function actually
             const test: Stack = { coordinateList: []}
-            stackCoordinates.forEach(coordinate =>
+            shape.collisionCoordinates.forEach(coordinate =>
               test.coordinateList.push(
                 {
                     x_axis: coordinate.x_axis,
@@ -102,9 +109,15 @@ const Grid: React.FC = () => {
                 }
               )
             )
+            setStack(prevState => {
+                return {
+                    coordinateList: prevState.coordinateList.concat(test.coordinateList)
+                }
+            })
 
-            const updateState = stackCoordinates.concat(shape.collisionCoordinates)
-            setStackCoordinates(updateState)
+            setStackCoordinates(prevState => {
+                return prevState.concat(shape.collisionCoordinates)
+            })
             setActiveShapeV2(generateNewRandomShape)
         }
     }
@@ -126,6 +139,7 @@ const Grid: React.FC = () => {
                     stackCoordinate.y_axis === coordinateToClear.y_axis
                 )
             )
+
             updatedStackCoordinates.forEach(coordinate =>
                 coordinate.y_axis += 1
             )
@@ -138,12 +152,12 @@ const Grid: React.FC = () => {
         window.addEventListener('keydown', handleRotateShape)
         // TODO fix this hardcoded stack logic
         addToStack(activeShapeV2)
-        // createNewShape()
-        clearBottomRow()
+        // clearBottomRow()
         return () => {
             window.removeEventListener('keydown', handleRotateShape)
         }
     }, [activeShapeV2])
+
 
 
     const row = Y_AXIS_DIMENTION;
@@ -156,6 +170,11 @@ const Grid: React.FC = () => {
             const stackCoordinate = stackCoordinates?.some(coordinate =>
                 coordinate.x_axis === j && coordinate.y_axis === i
             )
+
+
+            const test = stack.coordinateList.find( coordinate =>
+              coordinate.x_axis === j && coordinate.y_axis === i
+            )?.color
 
             const collisionCell = activeShapeV2.collisionCoordinates.some(coordinate =>
                 coordinate.x_axis === j && coordinate.y_axis === i
@@ -175,7 +194,7 @@ const Grid: React.FC = () => {
                     row={i}
                     column={j}
                     collisionCell={collisionCell}
-                    stackCell={stackCoordinate}
+                    stackCell={test}
                     paddingCell={paddingCell}
                     shapeColor={shapeColor}
                 />
