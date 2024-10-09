@@ -5,12 +5,11 @@ import {
     generateNewRandomShape,
     isShapeAtBottomOfGameBoard,
     isShapeTouchingStack,
-    numberOfRowsToClear, rotateShape, updateCoordinatesOnPlayerMove
+    numberOfRowsToClear, rotateShape, rowsToClear, updateCoordinatesOnPlayerMove
 } from "../assets/Utils";
 import GridCell from "../GridCell/GridCell";
 import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
-import { Coordinate, Shape, StackCoordinate, Stack, Color} from "../assets/types.tsx";
-import {types} from "sass";
+import { Coordinate, Shape, Stack } from "../assets/types.tsx";
 
 const GameBoard: React.FC = () => {
     return (
@@ -26,25 +25,18 @@ export default GameBoard
 const Grid: React.FC = () => {
 
     // State to hold the currently active ' moving ' shape
-    const [activeShapeV2, setActiveShapeV2] = useState<Shape>(generateNewRandomShape)
-    console.log('This is the active shape', activeShapeV2)
+    const [activeShape, setActiveShape] = useState<Shape>(generateNewRandomShape)
+
 
     // State to hold the 'stack' of tiles at the bottom of the game board.
-    const [stackCoordinates, setStackCoordinates] = useState<Coordinate[]>([])
-    console.log('These are the sack coordinates: ', stackCoordinates)
-
-    // Test state to hold the new and improved stack
     const [stack, setStack] = useState<Stack>({coordinateList:[]})
-    console.log('TEST STACK COORDINATES: ', stack)
-
-
 
     /*
     * Handles updating x-axis coordinates for the active shape on game board.
     * Checks for out of bounds ( GameBoard x-axis limit )
     * **/
     const handleRotateShape = (event: KeyboardEvent) => {
-        setActiveShapeV2(prevState => {
+        setActiveShape(prevState => {
 
             let updatedCoordinates: Coordinate[]
             let updatedCollisionCoordinates: Coordinate[]
@@ -96,7 +88,7 @@ const Grid: React.FC = () => {
     // Add coordinates to stack if they have reached the bottom of the game grid. Also, empty the active shape state
     // Best practice is to du functional state updates whenever state is dependent on previous state!!
     const addToStack = (shape: Shape) => {
-        if (isShapeTouchingStack(shape, stackCoordinates) || isShapeAtBottomOfGameBoard(shape)) {
+        if (isShapeTouchingStack(shape, stack.coordinateList) || isShapeAtBottomOfGameBoard(shape)) {
             console.log('Touching!!!!')
             // TODO could move this to a separate function actually
             const test: Stack = { coordinateList: []}
@@ -114,49 +106,50 @@ const Grid: React.FC = () => {
                     coordinateList: prevState.coordinateList.concat(test.coordinateList)
                 }
             })
-
-            setStackCoordinates(prevState => {
-                return prevState.concat(shape.collisionCoordinates)
-            })
-            setActiveShapeV2(generateNewRandomShape)
+            setActiveShape(generateNewRandomShape)
         }
     }
 
-    // TODO should consider counting up number of potential rows to clear in one swoop
-    // TODO must move rows above cleared x number of y-coordinates down
-    // TODO handle case where maybe every other row is cleared
-    // TODO handle multiple rows being cleared adjusts stock accordingly and settle to the bottom.
-    // Could potentially keep track of a single row on stack and move it based on how many rows below itself was cleared.
-    // ... fuck me dude
+
+    // TODO merge coordinate list and row number list into a single logical step
     const clearBottomRow = () => {
-        const coordinatesToClear = numberOfRowsToClear(stackCoordinates)
-        const clearedRows = coordinatesToClear / 10
+        const coordinatesToClear = numberOfRowsToClear(stack.coordinateList)
+        const rows = rowsToClear(stack.coordinateList)
+        // Lowest number should be the last in list as we push on list from lowest to highest y-coordinate
+        const lowestRow = Math.min(...rows)
+        console.log('I want to clear these rows', rows)
+
         if (coordinatesToClear.length > 0) {
             console.log('clearing row(s)!!!')
-            const updatedStackCoordinates = stackCoordinates.filter(stackCoordinate =>
+            const updatedStackCoordinates = stack.coordinateList.filter(stackCoordinate =>
                 !coordinatesToClear.some(coordinateToClear =>
                     stackCoordinate.x_axis === coordinateToClear.x_axis &&
                     stackCoordinate.y_axis === coordinateToClear.y_axis
                 )
             )
-
-            updatedStackCoordinates.forEach(coordinate =>
-                coordinate.y_axis += 1
+            // TODO drop all the sack coordinates down until they reach bottom or lands on another cell
+            updatedStackCoordinates.forEach((coordinate) => {
+               if(coordinate.y_axis < lowestRow) {
+                   coordinate.y_axis += rows.length
+               }
+            }
             )
-            setStackCoordinates(updatedStackCoordinates)
+            setStack({
+                coordinateList: updatedStackCoordinates
+                }
+            )
         }
     }
 
 
     useEffect(() => {
         window.addEventListener('keydown', handleRotateShape)
-        // TODO fix this hardcoded stack logic
-        addToStack(activeShapeV2)
-        // clearBottomRow()
+        addToStack(activeShape)
+        clearBottomRow()
         return () => {
             window.removeEventListener('keydown', handleRotateShape)
         }
-    }, [activeShapeV2])
+    }, [activeShape] )
 
 
 
@@ -166,36 +159,22 @@ const Grid: React.FC = () => {
     for (let i = 0; i < row; i++) {
         for (let j = 0; j < column; j++) {
 
-            // Calculate if coordinate is matching the stack state coordinates
-            const stackCoordinate = stackCoordinates?.some(coordinate =>
-                coordinate.x_axis === j && coordinate.y_axis === i
-            )
-
-
-            const test = stack.coordinateList.find( coordinate =>
+            const stackCell = stack.coordinateList.find( coordinate =>
               coordinate.x_axis === j && coordinate.y_axis === i
             )?.color
 
-            const collisionCell = activeShapeV2.collisionCoordinates.some(coordinate =>
+            const collisionCell = activeShape.collisionCoordinates.some(coordinate =>
                 coordinate.x_axis === j && coordinate.y_axis === i
             )
 
-            const paddingCell = activeShapeV2.coordinates.some(coordinate =>
-                coordinate.x_axis === j && coordinate.y_axis === i
-            )
-
-            const shapeColor = activeShapeV2.color
-
-            // Could need to actually move all the 'active' cells to the left and the right when < >
-            // Need then to 'lock' the active in shape cells that has reached the bottom of the game screen.
+            const shapeColor = activeShape.color
 
             grid.push(
                 <GridCell
                     row={i}
                     column={j}
                     collisionCell={collisionCell}
-                    stackCell={test}
-                    paddingCell={paddingCell}
+                    stackCell={stackCell}
                     shapeColor={shapeColor}
                 />
             )

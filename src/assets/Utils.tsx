@@ -292,8 +292,6 @@ export function rotateIShape(shape: Shape): Shape {
 
 
 // TODO extend to clear multiple rows at a time to manage some scoring system for multiple rows on stack solved.
-// TODO search for rows bottom to top and clear any that has full row
-// TODO just return coordinates to remove from stack :))))
 export function numberOfRowsToClear(stackCoordinates: Coordinate[]): Coordinate[] {
     // console.log('Checking stack coordinates: ', stackCoordinates)
     const rowList: Coordinate[] = []
@@ -309,13 +307,30 @@ export function numberOfRowsToClear(stackCoordinates: Coordinate[]): Coordinate[
             rowCoordinate.y_axis === coordinate.y_axis )
         )){
             rowList.push(...rowToCheck)
-        } else {
-            // console.log('Compared with: ', rowToCheck)
-            // console.log('Found no full row!!!')
         }
-        // console.log('Clear these coordinates: ', rowList)
     }
     return rowList
+}
+
+
+// remember that this returns the "reversed row " to clear because of coordinate grid :P
+export function rowsToClear(stackCoordinates: Coordinate[]) : number[] {
+    const rowNumbers: number[] = []
+
+    // Start from row 0 and work our way up
+    for(let row = 0 ; row < Y_AXIS_DIMENTION ;  row ++ ) {
+        const rowCoordinates = generateRowCoordinates(row)
+
+        if(rowCoordinates.every(rowCoordinate =>
+          stackCoordinates.some(stackCoordinate =>
+            rowCoordinate.x_axis === stackCoordinate.x_axis &&
+            rowCoordinate.y_axis === stackCoordinate.y_axis
+          )
+        )){
+            rowNumbers.push(row)
+        }
+    }
+    return rowNumbers
 }
 
 // Generate a row of coordinates given a row number.
@@ -326,3 +341,4 @@ function generateRowCoordinates(rowNumber: number): Coordinate[] {
     }
     return coordinateList
 }
+

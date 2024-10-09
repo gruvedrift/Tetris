@@ -7,13 +7,12 @@ interface GridCellProps {
   column: number,
   collisionCell: boolean,
   stackCell: Color,
-  paddingCell: boolean,
   shapeColor: Color
 }
 
 const GridCell: React.FC<GridCellProps> = (cellProps) => {
-  const {row, column, collisionCell, stackCell, paddingCell, shapeColor} = cellProps
-  const styling = getStyling(collisionCell, stackCell, paddingCell, shapeColor)
+  const {row, column, collisionCell, stackCell, shapeColor} = cellProps
+  const styling = getStyling(collisionCell, stackCell, shapeColor)
 
   return (
     <div
@@ -23,31 +22,22 @@ const GridCell: React.FC<GridCellProps> = (cellProps) => {
     </div>
   )
 }
-
 export default GridCell
-
 
 /*
 * Determine styling for cells on game board grid.
 * **/
-// TODO clean up this mess (^._.^) /
-function getStyling(collisionCell: boolean, stackCell: Color, paddingCell: boolean, shapeColor: Color): string {
-  const conditions = {
-    isStackCell: (collisionCell && stackCell && !paddingCell) || (!collisionCell && stackCell && !paddingCell),
-    isShapeCell: collisionCell && !stackCell && paddingCell,
-    isPaddingCell: !collisionCell && !stackCell && paddingCell,
-    isGridCell: !collisionCell && !stackCell && !paddingCell,
-  }
+function getStyling(collisionCell: boolean, stackCell: Color, shapeColor: Color): string {
+
   switch (true) {
-    case conditions.isStackCell: return getStylingForShape(stackCell)
-    case conditions.isShapeCell: return getStylingForShape(shapeColor)
-    case conditions.isPaddingCell: return styles.paddingCell
-    case conditions.isGridCell: return  styles.gridCell
+    case isColor(stackCell): return getStylingForCell(stackCell)
+    case collisionCell: return getStylingForCell(shapeColor)
+    default: return styles.gridCell
   }
 }
 
 // Helper function to make styling function a bit easier to read
-function getStylingForShape(shapeColor: Color) : string {
+function getStylingForCell(shapeColor: Color) : string {
   switch (shapeColor) {
     case Color.CYAN: return styles.iShape
     case Color.BLUE: return styles.jShape
@@ -58,3 +48,9 @@ function getStylingForShape(shapeColor: Color) : string {
     case Color.RED: return styles.zShape
   }
 }
+
+// Type Guard for handling undefined color cell
+function isColor<Color>(value: Color  | undefined): value is Color {
+  return value !== undefined
+}
+
