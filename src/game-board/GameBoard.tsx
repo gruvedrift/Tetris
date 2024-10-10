@@ -1,32 +1,40 @@
 import styles from './GameBoard.module.scss';
 import React, {useEffect, useState} from "react";
 import {
+    calculatePoints,
     collisionCoordinateOutOfBounds,
-    generateNewRandomShape,
+    generateNewRandomShape, getStackClearingInfo,
     isShapeAtBottomOfGameBoard,
     isShapeTouchingStack,
-    numberOfRowsToClear, rotateShape, rowsToClear, updateCoordinatesOnPlayerMove
+    rotateShape, updateCoordinatesOnPlayerMove
 } from "../assets/Utils";
 import GridCell from "../GridCell/GridCell";
 import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
 import { Coordinate, Shape, Stack } from "../assets/types.tsx";
 
-const GameBoard: React.FC = () => {
+interface GameBoardProps {
+    onRowClear: (points: number ) => void
+}
+
+const GameBoard: React.FC<GameBoardProps> = ({onRowClear}) => {
     return (
         <div className={styles.gameboard}>
-            <Grid/>
+            <Grid onRowClear={onRowClear}/>
         </div>
     )
 }
 
 export default GameBoard
 
+interface GridProps {
+    onRowClear: (points: number) => void
+}
+
 // TODO reverse the grid so that 0,0 is in the bottom left and 9,9 is in the upper right
-const Grid: React.FC = () => {
+const Grid: React.FC<GridProps>  = ({onRowClear}) => {
 
     // State to hold the currently active ' moving ' shape
     const [activeShape, setActiveShape] = useState<Shape>(generateNewRandomShape)
-
 
     // State to hold the 'stack' of tiles at the bottom of the game board.
     const [stack, setStack] = useState<Stack>({coordinateList:[]})
@@ -39,43 +47,51 @@ const Grid: React.FC = () => {
         setActiveShape(prevState => {
 
             let updatedCoordinates: Coordinate[]
-            let updatedCollisionCoordinates: Coordinate[]
+            let updatedShapeCoordinates: Coordinate[]
             const rotatedShape = rotateShape(prevState)
             switch (event.key) {
                 case 'ArrowUp':
                     updatedCoordinates = rotatedShape.coordinates
-                    updatedCollisionCoordinates = rotatedShape.collisionCoordinates
+                    updatedShapeCoordinates = rotatedShape.shapeCoordinates
                     break;
                 case 'ArrowDown':
-                    ({updatedCoordinates, updatedCollisionCoordinates} = updateCoordinatesOnPlayerMove(
+                    ({updatedCoordinates, updatedShapeCoordinates} = updateCoordinatesOnPlayerMove(
                         prevState.coordinates,
-                        prevState.collisionCoordinates,
+                        prevState.shapeCoordinates,
                         0, 1
                     ))
                     break;
                 case 'ArrowLeft':
-                    ({updatedCoordinates, updatedCollisionCoordinates} = updateCoordinatesOnPlayerMove(
+                    ({updatedCoordinates, updatedShapeCoordinates} = updateCoordinatesOnPlayerMove(
                         prevState.coordinates,
-                        prevState.collisionCoordinates,
+                        prevState.shapeCoordinates,
                         -1, 0
                     ))
                     break;
                 case 'ArrowRight':
-                    ({updatedCoordinates, updatedCollisionCoordinates} = updateCoordinatesOnPlayerMove(
+                    ({updatedCoordinates, updatedShapeCoordinates} = updateCoordinatesOnPlayerMove(
                         prevState.coordinates,
-                        prevState.collisionCoordinates,
+                        prevState.shapeCoordinates,
                         1,0
                     ))
+                    break;
+                case ' ':
+                    // Calculate how many spaces on the Y axis the shape has to fall ?
+                    ({updatedCoordinates, updatedShapeCoordinates} = updateCoordinatesOnPlayerMove(
+                      prevState.coordinates,
+                      prevState.shapeCoordinates,
+                      0, 20
+                ))
                     break;
                 default:
                     return prevState
             }
 
             // Update only if collision coordinates does not touch edges. Ensures rotational safety
-            if (!collisionCoordinateOutOfBounds(updatedCollisionCoordinates)) {
+            if (!collisionCoordinateOutOfBounds(updatedShapeCoordinates)) {
                 return {
                     coordinates: updatedCoordinates,
-                    collisionCoordinates: updatedCollisionCoordinates,
+                    shapeCoordinates: updatedShapeCoordinates,
                     pivotPointCoordinate: prevState.pivotPointCoordinate,
                     color: prevState.color
                 }
@@ -92,7 +108,7 @@ const Grid: React.FC = () => {
             console.log('Touching!!!!')
             // TODO could move this to a separate function actually
             const test: Stack = { coordinateList: []}
-            shape.collisionCoordinates.forEach(coordinate =>
+            shape.shapeCoordinates.forEach(coordinate =>
               test.coordinateList.push(
                 {
                     x_axis: coordinate.x_axis,
@@ -113,11 +129,10 @@ const Grid: React.FC = () => {
 
     // TODO merge coordinate list and row number list into a single logical step
     const clearBottomRow = () => {
-        const coordinatesToClear = numberOfRowsToClear(stack.coordinateList)
-        const rows = rowsToClear(stack.coordinateList)
-        // Lowest number should be the last in list as we push on list from lowest to highest y-coordinate
-        const lowestRow = Math.min(...rows)
-        console.log('I want to clear these rows', rows)
+        const { coordinatesToClear, rowsToClear }  = getStackClearingInfo(stack.coordinateList)
+
+        const lowestRow = Math.min(...rowsToClear)
+        console.log('I want to clear these rows', rowsToClear)
 
         if (coordinatesToClear.length > 0) {
             console.log('clearing row(s)!!!')
@@ -127,17 +142,18 @@ const Grid: React.FC = () => {
                     stackCoordinate.y_axis === coordinateToClear.y_axis
                 )
             )
-            // TODO drop all the sack coordinates down until they reach bottom or lands on another cell
             updatedStackCoordinates.forEach((coordinate) => {
-               if(coordinate.y_axis < lowestRow) {
-                   coordinate.y_axis += rows.length
-               }
-            }
+                   if(coordinate.y_axis < lowestRow) {
+                       coordinate.y_axis += rowsToClear.length
+                   }
+                }
             )
+
             setStack({
                 coordinateList: updatedStackCoordinates
                 }
             )
+            onRowClear(calculatePoints(rowsToClear.length))
         }
     }
 
@@ -163,7 +179,7 @@ const Grid: React.FC = () => {
               coordinate.x_axis === j && coordinate.y_axis === i
             )?.color
 
-            const collisionCell = activeShape.collisionCoordinates.some(coordinate =>
+            const collisionCell = activeShape.shapeCoordinates.some(coordinate =>
                 coordinate.x_axis === j && coordinate.y_axis === i
             )
 

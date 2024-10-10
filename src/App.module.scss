@@ -1,7 +1,10 @@
 
+// move max width styling down to one of the components. Can use .root styling for the whole game
+// ( game screen  + score + next piece )
 .root {
-  max-width: 1280px;
+  max-width: 500px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  //background-color: pink;
 }

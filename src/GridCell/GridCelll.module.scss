@@ -1,17 +1,7 @@
 .gridCell {
   background-color: grey;
-  //border: 1px solid black;
-  width: 100%;
-  height: 100%;
   text-align: center;
-}
-
-.collisionCell {
-  background-color: deepskyblue;
-}
-
-.stackCell {
-  background-color: white;
+  aspect-ratio: 1/1;
 }
 
 .paddingCell {

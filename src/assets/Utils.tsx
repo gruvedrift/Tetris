@@ -1,23 +1,53 @@
 // Helper function to check whether number has reached max coordinate
 import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
-import {Color, Coordinate, Shape} from "./types";
+import {Color, Coordinate, Shape, StackClearInfo} from "./types";
+
+
+export function calculatePoints(rowsCleared: number) : number {
+    const scoring = [0, 100, 300, 500, 1200]
+    return scoring[rowsCleared] | 0
+}
+
+export function calculateDistanceToStack(shapeCoordinates: Coordinate[], stackCoordinates: Coordinate[]): number {
+
+    console.log('Got shape coordinates', shapeCoordinates)
+    console.log('Got stack coordinates', stackCoordinates)
+    // Gather all the x-axis coordinates the shape covers
+    const xAxises: number[] = []
+    shapeCoordinates.forEach((coordinate) => {
+        if (!xAxises.includes(coordinate.x_axis) ) {
+           xAxises.push(coordinate.x_axis)
+        }
+      }
+    )
+    console.log('Shape covers these x-axises:', xAxises)
+
+    const stackXAxises: number = []
+    stackCoordinates.forEach((coordinate) => {
+
+    })
+
+    return 1
+}
 
 
 /* Helper function for updating shape coordinates on user input. <, V, > */
 export function updateCoordinatesOnPlayerMove(
     coordinates: Coordinate[],
-    collisionCoordinates: Coordinate[],
+    shapeCoordinates: Coordinate[],
     x_adjust: number,
     y_adjust: number,
-): {updatedCoordinates: Coordinate[], updatedCollisionCoordinates: Coordinate[]} {
+): { updatedCoordinates: Coordinate[], updatedShapeCoordinates: Coordinate[] }
+{
     const updatedCoordinates = coordinates.map(coordinate => (
         { x_axis: coordinate.x_axis + x_adjust ,y_axis: coordinate.y_axis + y_adjust }
     ))
-    const updatedCollisionCoordinates = collisionCoordinates.map(coordinate => (
+    const updatedShapeCoordinates = shapeCoordinates.map(coordinate => (
         { x_axis: coordinate.x_axis + x_adjust ,y_axis: coordinate.y_axis + y_adjust }
     ))
-    return {updatedCoordinates, updatedCollisionCoordinates}
+    return {updatedCoordinates, updatedShapeCoordinates}
 }
+
 
 export function collisionCoordinateOutOfBounds(collisionCoordinates: Coordinate[]): boolean {
     return collisionCoordinates.some(coordinate =>
@@ -29,10 +59,11 @@ export function collisionCoordinateOutOfBounds(collisionCoordinates: Coordinate[
 
 // Returns true if any coordinate in shape is 'touching' the bottom stack.
 // True on coordinate y-axis - 1 to 'stack' on top.
+
 // TODO implement logic to avoid shape 'sticking' to stack when moving sideways
 export function isShapeTouchingStack(shape: Shape, stackCoordinates: Coordinate[]): boolean {
     // Find which coordinates are on the top of the stack for each column, should only check if they are touching them
-    return shape.collisionCoordinates.some(shapeCoordinates =>
+    return shape.shapeCoordinates.some(shapeCoordinates =>
         stackCoordinates.some(stackCoordinates =>
             shapeCoordinates.x_axis === stackCoordinates.x_axis &&
             shapeCoordinates.y_axis === stackCoordinates.y_axis - 1
@@ -43,7 +74,7 @@ export function isShapeTouchingStack(shape: Shape, stackCoordinates: Coordinate[
 // Returns true if any coordinate in shape is 'touching' bottom of the board.
 // True on coordinate y-axis -1 to 'stack' on bottom.
 export function isShapeAtBottomOfGameBoard(shape: Shape): boolean {
-    return shape.collisionCoordinates.some(coordinate =>
+    return shape.shapeCoordinates.some(coordinate =>
         coordinate.y_axis === Y_AXIS_DIMENTION - 1
     )
 }
@@ -85,7 +116,7 @@ export function generateIShape(): Shape {
             {x_axis: 6, y_axis: 2},
             {x_axis: 6, y_axis: 3},
         ],
-        collisionCoordinates: [
+        shapeCoordinates: [
             {x_axis: 3, y_axis: 1},
             {x_axis: 4, y_axis: 1},
             {x_axis: 5, y_axis: 1},
@@ -109,7 +140,7 @@ export function generateJShape(): Shape {
             {x_axis: 5, y_axis: 1},
             {x_axis: 5, y_axis: 2},
         ],
-        collisionCoordinates: [
+        shapeCoordinates: [
             {x_axis: 4, y_axis: 0},
             {x_axis: 4, y_axis: 1},
             {x_axis: 4, y_axis: 2},
@@ -133,7 +164,7 @@ export function generateLShape(): Shape {
             {x_axis: 5, y_axis: 1},
             {x_axis: 5, y_axis: 2},
         ],
-        collisionCoordinates: [
+        shapeCoordinates: [
             {x_axis: 4, y_axis: 0},
             {x_axis: 4, y_axis: 1},
             {x_axis: 4, y_axis: 2},
@@ -160,7 +191,7 @@ export function generateOShape(): Shape {
             {x_axis: 6, y_axis: 1},
             {x_axis: 6, y_axis: 2},
         ],
-        collisionCoordinates: [
+        shapeCoordinates: [
             {x_axis: 4, y_axis: 0},
             {x_axis: 4, y_axis: 1},
             {x_axis: 5, y_axis: 0},
@@ -184,7 +215,7 @@ export function generateSShape(): Shape {
             {x_axis: 5, y_axis: 1},
             {x_axis: 5, y_axis: 2},
         ],
-        collisionCoordinates: [
+        shapeCoordinates: [
             {x_axis: 4, y_axis: 0},
             {x_axis: 5, y_axis: 0},
             {x_axis: 3, y_axis: 1},
@@ -208,7 +239,7 @@ export function generateTShape(): Shape {
             {x_axis: 5, y_axis: 1},
             {x_axis: 5, y_axis: 2},
         ],
-        collisionCoordinates: [
+        shapeCoordinates: [
             {x_axis: 4, y_axis: 0},
             {x_axis: 3, y_axis: 1},
             {x_axis: 4, y_axis: 1},
@@ -232,7 +263,7 @@ export function generateZShape(): Shape {
             {x_axis: 5, y_axis: 1},
             {x_axis: 5, y_axis: 2},
         ],
-        collisionCoordinates: [
+        shapeCoordinates: [
             {x_axis: 3, y_axis: 0},
             {x_axis: 4, y_axis: 0},
             {x_axis: 4, y_axis: 1},
@@ -256,7 +287,7 @@ export function rotateShape(shape: Shape): Shape {
     const pivotCoordinate = shape.coordinates[shape.pivotPointCoordinate]
     return {
         coordinates: shape.coordinates,
-        collisionCoordinates: shape.collisionCoordinates.map(coordinate => {
+        shapeCoordinates: shape.shapeCoordinates.map(coordinate => {
             const new_x = pivotCoordinate.x_axis -  (coordinate.y_axis - pivotCoordinate.y_axis)
             const new_y = pivotCoordinate.y_axis +  (coordinate.x_axis - pivotCoordinate.x_axis)
             return {
@@ -276,7 +307,7 @@ export function rotateIShape(shape: Shape): Shape {
 
     return {
         coordinates: shape.coordinates,
-        collisionCoordinates: shape.collisionCoordinates.map(coordinate => {
+        shapeCoordinates: shape.shapeCoordinates.map(coordinate => {
             const new_x = pivot_x - (coordinate.y_axis - pivot_y);
             const new_y = pivot_y + (coordinate.x_axis - pivot_x);
 
@@ -292,46 +323,27 @@ export function rotateIShape(shape: Shape): Shape {
 
 
 // TODO extend to clear multiple rows at a time to manage some scoring system for multiple rows on stack solved.
-export function numberOfRowsToClear(stackCoordinates: Coordinate[]): Coordinate[] {
-    // console.log('Checking stack coordinates: ', stackCoordinates)
-    const rowList: Coordinate[] = []
+// remember that this returns the "reversed row " to clear because of coordinate grid :P
+export function getStackClearingInfo(stackCoordinates: Coordinate[]): StackClearInfo {
+    const stackClearInfo: StackClearInfo = { coordinatesToClear: [], rowsToClear : [] }
 
     // Check row by row
     for(let row = 0 ; row < Y_AXIS_DIMENTION ; row++) {
-
         const rowToCheck = generateRowCoordinates(row)
-
         if(rowToCheck.every(rowCoordinate =>
           stackCoordinates.some(coordinate =>
             rowCoordinate.x_axis === coordinate.x_axis &&
             rowCoordinate.y_axis === coordinate.y_axis )
         )){
-            rowList.push(...rowToCheck)
+            stackClearInfo.coordinatesToClear.push(...rowToCheck)
+            stackClearInfo.rowsToClear.push(row)
         }
     }
-    return rowList
+
+    // could calculate score here
+    return stackClearInfo
 }
 
-
-// remember that this returns the "reversed row " to clear because of coordinate grid :P
-export function rowsToClear(stackCoordinates: Coordinate[]) : number[] {
-    const rowNumbers: number[] = []
-
-    // Start from row 0 and work our way up
-    for(let row = 0 ; row < Y_AXIS_DIMENTION ;  row ++ ) {
-        const rowCoordinates = generateRowCoordinates(row)
-
-        if(rowCoordinates.every(rowCoordinate =>
-          stackCoordinates.some(stackCoordinate =>
-            rowCoordinate.x_axis === stackCoordinate.x_axis &&
-            rowCoordinate.y_axis === stackCoordinate.y_axis
-          )
-        )){
-            rowNumbers.push(row)
-        }
-    }
-    return rowNumbers
-}
 
 // Generate a row of coordinates given a row number.
 function generateRowCoordinates(rowNumber: number): Coordinate[] {
@@ -341,4 +353,6 @@ function generateRowCoordinates(rowNumber: number): Coordinate[] {
     }
     return coordinateList
 }
+
+
 

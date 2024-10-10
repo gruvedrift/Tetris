@@ -1,9 +1,12 @@
 
 .gameboard{
-  background-color: lightblue;
-  border: 10px;
-  border-style: solid;
-  border-color: deeppink;
+  //background-color: lightblue;
+  //border: 10px;
+  //border-style: solid;
+  //border-color: deeppink;
+  //
+  //max-width: 700px;  /* Adjust as necessary */
+  //max-height: 1400px; /* Adjust as necessary */
 }
 
 // Will be applied to all H1 that imports
@@ -16,17 +19,8 @@ h1 {
   display: grid;
 }
 .gridcontainer {
-  height: 600px; // temporarily will change this later
   display: grid;
-  grid-template-rows: repeat(10, 1fr); // Adjust to make the graphics more granular.
+  grid-template-rows: repeat(24, 1fr); // Adjust to make the graphics more granular.
   grid-template-columns: repeat(10, 1fr); // Adjust to make the graphics more granular.
   gap: 4px;
-}
-
-.griditem {
-  background-color: lightcoral;
-  border: 1px solid black;
-  width: 100%;
-  height:100%;
-  text-align: center;
 }

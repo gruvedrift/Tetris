@@ -4,14 +4,13 @@ export interface Coordinate {
 }
 
 export interface Shape {
+    // coordinates acts as a 'board' on which the shape is placed. Used for pivot rotations
     coordinates: Coordinate[]
-    collisionCoordinates: Coordinate[],
+    shapeCoordinates: Coordinate[],
     pivotPointCoordinate: number,
     color: Color,
 }
 
-
-// TODO implement different colors for different shapes
 export enum Color {
     CYAN,
     BLUE,
@@ -22,12 +21,15 @@ export enum Color {
     PURPLE
 }
 
-// TODO cook up a structure for the stack. Just holding regular coordinates are too messy.
-// TODO copy the
 export interface StackCoordinate extends Coordinate{
     color: Color
 }
 
 export interface Stack {
     coordinateList: StackCoordinate[]
+}
+
+export interface StackClearInfo {
+    coordinatesToClear: Coordinate[]
+    rowsToClear: number[]
 }

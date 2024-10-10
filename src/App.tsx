@@ -4,16 +4,22 @@ import {useEffect, useState} from "react";
 
 // TODO send as props
 export const X_AXIS_DIMENTION = 10
-export const Y_AXIS_DIMENTION = 10
+export const Y_AXIS_DIMENTION = 24
 
 
 function App() {
+  const [score, setScore] = useState<number>(0)
+
+  const handleScoreUpdate = (points: number) => {
+    setScore(previousScore =>  previousScore + points)
+  }
 
   return (
     <div className={styles.root}>
       <h1>Tetris</h1>
-      <GameBoard/>
-      <Clocker/>
+      <GameBoard onRowClear={handleScoreUpdate}/>
+      {`Score: ${score}`}
+      {/*<Clocker/>*/}
     </div>
   )
 }
