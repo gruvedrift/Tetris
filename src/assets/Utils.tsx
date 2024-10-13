@@ -1,6 +1,7 @@
 // Helper function to check whether number has reached max coordinate
 import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
 import {Color, Coordinate, Shape, StackClearInfo} from "./types";
+import {createFilter} from "vite";
 
 
 export function calculatePoints(rowsCleared: number) : number {
@@ -8,26 +9,56 @@ export function calculatePoints(rowsCleared: number) : number {
     return scoring[rowsCleared] | 0
 }
 
-export function calculateDistanceToStack(shapeCoordinates: Coordinate[], stackCoordinates: Coordinate[]): number {
+/**
+ * Helper function to calculate how far the Tetromino can 'fall' down on Hard drop.
+ * Returns the lowest distance between any overlapping coordinate between the Tetromino and the stack.
+ * Returns distance down to bottom of the Well / game board if there are no overlapping coordinates.
+ * */
+export function calculateHardDropDistance(shapeCoordinates: Coordinate[], stackCoordinates: Coordinate[]): number {
 
-    console.log('Got shape coordinates', shapeCoordinates)
-    console.log('Got stack coordinates', stackCoordinates)
-    // Gather all the x-axis coordinates the shape covers
-    const xAxises: number[] = []
+    const shapeColumnNumbers: number[] = []
     shapeCoordinates.forEach((coordinate) => {
-        if (!xAxises.includes(coordinate.x_axis) ) {
-           xAxises.push(coordinate.x_axis)
+        if (!shapeColumnNumbers.includes(coordinate.x_axis) ) {
+           shapeColumnNumbers.push(coordinate.x_axis)
         }
       }
     )
-    console.log('Shape covers these x-axises:', xAxises)
 
-    const stackXAxises: number = []
-    stackCoordinates.forEach((coordinate) => {
+    const stackCoordinatesOverlappingShape = stackCoordinates.filter((coordinate) =>
+        shapeColumnNumbers.includes(coordinate.x_axis)
+    )
 
+    /**
+     * If there are no overlapping coordinates on the stack, this means that the shape is free to hard drop
+     * the remaining distance down to bottom of the Well.
+    * */
+    if (stackCoordinatesOverlappingShape.length == 0 ) {
+        let lowestCoordinateInShape: Coordinate = {x_axis: 0 , y_axis: 0 }
+        shapeCoordinates.forEach((coordinate) => {
+            if(coordinate.y_axis > lowestCoordinateInShape.y_axis) {
+                lowestCoordinateInShape = coordinate
+            }
+        })
+        return ( Y_AXIS_DIMENTION - lowestCoordinateInShape.y_axis - 1 )
+    }
+
+    /* Find the highest coordinate point on the stack on an overlapping column. */
+    let highestCoordinateOnStack: Coordinate = { x_axis: 0, y_axis : Y_AXIS_DIMENTION }
+    stackCoordinatesOverlappingShape.forEach((coordinate) => {
+        if (coordinate.y_axis < highestCoordinateOnStack.y_axis) {
+            highestCoordinateOnStack = coordinate
+        }
     })
 
-    return 1
+    /* Find the lowest coordinate point on the Tetromino on an overlapping column */
+    let lowestShapeCoordinate: Coordinate = {x_axis: 0, y_axis : 0 }
+    shapeCoordinates.forEach((coordinate) => {
+        if(coordinate.y_axis > lowestShapeCoordinate.y_axis && coordinate.x_axis == highestCoordinateOnStack.x_axis) {
+            lowestShapeCoordinate = coordinate
+        }
+    })
+
+    return (highestCoordinateOnStack.y_axis - lowestShapeCoordinate.y_axis - 1)
 }
 
 
@@ -57,10 +88,10 @@ export function collisionCoordinateOutOfBounds(collisionCoordinates: Coordinate[
 }
 
 
+
 // Returns true if any coordinate in shape is 'touching' the bottom stack.
 // True on coordinate y-axis - 1 to 'stack' on top.
-
-// TODO implement logic to avoid shape 'sticking' to stack when moving sideways
+// TODO expand logic to block on sideways movement into the side of a stack partition
 export function isShapeTouchingStack(shape: Shape, stackCoordinates: Coordinate[]): boolean {
     // Find which coordinates are on the top of the stack for each column, should only check if they are touching them
     return shape.shapeCoordinates.some(shapeCoordinates =>
@@ -78,7 +109,6 @@ export function isShapeAtBottomOfGameBoard(shape: Shape): boolean {
         coordinate.y_axis === Y_AXIS_DIMENTION - 1
     )
 }
-
 
 
 // Pick new random shape from list
@@ -322,8 +352,9 @@ export function rotateIShape(shape: Shape): Shape {
 }
 
 
-// TODO extend to clear multiple rows at a time to manage some scoring system for multiple rows on stack solved.
-// remember that this returns the "reversed row " to clear because of coordinate grid :P
+/**
+ * Gathers and returns information about how many rows and which coordinates should ( if any ) be cleared from the stack.
+ * */
 export function getStackClearingInfo(stackCoordinates: Coordinate[]): StackClearInfo {
     const stackClearInfo: StackClearInfo = { coordinatesToClear: [], rowsToClear : [] }
 
@@ -345,7 +376,7 @@ export function getStackClearingInfo(stackCoordinates: Coordinate[]): StackClear
 }
 
 
-// Generate a row of coordinates given a row number.
+/* Generate coordinates in a row number. */
 function generateRowCoordinates(rowNumber: number): Coordinate[] {
     const coordinateList: Coordinate[] = []
     for(let x = 0; x < X_AXIS_DIMENTION; x ++){

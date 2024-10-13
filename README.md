@@ -41,7 +41,11 @@ Terror-Duck TM
 
 
 ### TODO 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+- Implement Lock Decay with an in-game counter / tick for sliding Tetromino across stack. 
+- Implement sideways collision for Tetromino against stack. Currently only top-down implementation. 
+- Implement view for next spawning piece. 
+- Implement pause button.
+- Implement game over screen.
+- Implement restart button on game over screen.
 - Fix linting
+- Implement Kellermadchen-face-diaper-exchange for reverse BK scenario 🐑

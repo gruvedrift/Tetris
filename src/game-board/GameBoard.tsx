@@ -1,6 +1,7 @@
 import styles from './GameBoard.module.scss';
 import React, {useEffect, useState} from "react";
 import {
+    calculateHardDropDistance,
     calculatePoints,
     collisionCoordinateOutOfBounds,
     generateNewRandomShape, getStackClearingInfo,
@@ -39,9 +40,9 @@ const Grid: React.FC<GridProps>  = ({onRowClear}) => {
     // State to hold the 'stack' of tiles at the bottom of the game board.
     const [stack, setStack] = useState<Stack>({coordinateList:[]})
 
-    /*
-    * Handles updating x-axis coordinates for the active shape on game board.
-    * Checks for out of bounds ( GameBoard x-axis limit )
+    /**
+     * Handles updating x-axis coordinates for the active shape on game board.
+     * Checks for out of bounds ( GameBoard x-axis limit )
     * **/
     const handleRotateShape = (event: KeyboardEvent) => {
         setActiveShape(prevState => {
@@ -76,11 +77,10 @@ const Grid: React.FC<GridProps>  = ({onRowClear}) => {
                     ))
                     break;
                 case ' ':
-                    // Calculate how many spaces on the Y axis the shape has to fall ?
                     ({updatedCoordinates, updatedShapeCoordinates} = updateCoordinatesOnPlayerMove(
                       prevState.coordinates,
                       prevState.shapeCoordinates,
-                      0, 20
+                      0, calculateHardDropDistance(prevState.shapeCoordinates, stack.coordinateList)
                 ))
                     break;
                 default:
