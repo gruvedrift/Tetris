@@ -1,7 +1,5 @@
-// Helper function to check whether number has reached max coordinate
 import {X_AXIS_DIMENTION, Y_AXIS_DIMENTION} from "../App.tsx";
-import {Color, Coordinate, Shape, StackClearInfo} from "./types";
-import {createFilter} from "vite";
+import {Color, Coordinate, Shape, StackClearInfo, StackCoordinate} from "./types";
 
 
 export function calculatePoints(rowsCleared: number) : number {
@@ -15,7 +13,6 @@ export function calculatePoints(rowsCleared: number) : number {
  * Returns distance down to bottom of the Well / game board if there are no overlapping coordinates.
  * */
 export function calculateHardDropDistance(shapeCoordinates: Coordinate[], stackCoordinates: Coordinate[]): number {
-
     const shapeColumnNumbers: number[] = []
     shapeCoordinates.forEach((coordinate) => {
         if (!shapeColumnNumbers.includes(coordinate.x_axis) ) {
@@ -80,20 +77,34 @@ export function updateCoordinatesOnPlayerMove(
 }
 
 
-export function collisionCoordinateOutOfBounds(collisionCoordinates: Coordinate[]): boolean {
-    return collisionCoordinates.some(coordinate =>
+/* Checks whether next Tetromino move is a valid move */
+export function isValidMove(coordinates: Coordinate[], stackCoordinates: StackCoordinate[]) : boolean {
+    return !collisionCoordinateOutOfBounds(coordinates) && !sidewaysCollisionOnStack(coordinates, stackCoordinates)
+}
+
+
+/* Check if Tetromino will go out of bounds in the Well walls */
+function collisionCoordinateOutOfBounds(coordinates: Coordinate[]): boolean {
+    return coordinates.some(coordinate =>
         coordinate.x_axis > X_AXIS_DIMENTION -1 || coordinate.y_axis > Y_AXIS_DIMENTION -1 ||
         coordinate.x_axis < 0 || coordinate.y_axis < 0
     )
 }
 
 
+/* Check if Tetromino clips through any stack coordinate */
+function sidewaysCollisionOnStack(shapeCoordinates: Coordinate[], stackCoordinates: StackCoordinate[] ) : boolean {
+    return shapeCoordinates.some(shapeCoordinate =>
+      stackCoordinates.some(stackCoordinate =>
+        shapeCoordinate.x_axis === stackCoordinate.x_axis &&
+        shapeCoordinate.y_axis === stackCoordinate.y_axis
+      )
+    )
+}
 
-// Returns true if any coordinate in shape is 'touching' the bottom stack.
-// True on coordinate y-axis - 1 to 'stack' on top.
-// TODO expand logic to block on sideways movement into the side of a stack partition
+
+/* Returns true if Tetromino is touching the top of any block on the stack. */
 export function isShapeTouchingStack(shape: Shape, stackCoordinates: Coordinate[]): boolean {
-    // Find which coordinates are on the top of the stack for each column, should only check if they are touching them
     return shape.shapeCoordinates.some(shapeCoordinates =>
         stackCoordinates.some(stackCoordinates =>
             shapeCoordinates.x_axis === stackCoordinates.x_axis &&
@@ -102,8 +113,7 @@ export function isShapeTouchingStack(shape: Shape, stackCoordinates: Coordinate[
     )
 }
 
-// Returns true if any coordinate in shape is 'touching' bottom of the board.
-// True on coordinate y-axis -1 to 'stack' on bottom.
+/* Returns true if Tetromino is touching the bottom of the Well.   */
 export function isShapeAtBottomOfGameBoard(shape: Shape): boolean {
     return shape.shapeCoordinates.some(coordinate =>
         coordinate.y_axis === Y_AXIS_DIMENTION - 1

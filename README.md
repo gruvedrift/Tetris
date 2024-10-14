@@ -42,10 +42,8 @@ Terror-Duck TM
 
 ### TODO 
 - Implement Lock Decay with an in-game counter / tick for sliding Tetromino across stack. 
-- Implement sideways collision for Tetromino against stack. Currently only top-down implementation. 
 - Implement view for next spawning piece. 
 - Implement pause button.
 - Implement game over screen.
 - Implement restart button on game over screen.
 - Fix linting
-- Implement Kellermadchen-face-diaper-exchange for reverse BK scenario 🐑

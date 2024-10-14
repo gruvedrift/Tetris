@@ -3,10 +3,9 @@ import React, {useEffect, useState} from "react";
 import {
     calculateHardDropDistance,
     calculatePoints,
-    collisionCoordinateOutOfBounds,
     generateNewRandomShape, getStackClearingInfo,
     isShapeAtBottomOfGameBoard,
-    isShapeTouchingStack,
+    isShapeTouchingStack, isValidMove,
     rotateShape, updateCoordinatesOnPlayerMove
 } from "../assets/Utils";
 import GridCell from "../GridCell/GridCell";
@@ -87,8 +86,8 @@ const Grid: React.FC<GridProps>  = ({onRowClear}) => {
                     return prevState
             }
 
-            // Update only if collision coordinates does not touch edges. Ensures rotational safety
-            if (!collisionCoordinateOutOfBounds(updatedShapeCoordinates)) {
+            /* Update state if and only if Tetromino move is valid, else keep state as is. */
+            if (isValidMove(updatedShapeCoordinates, stack.coordinateList)) {
                 return {
                     coordinates: updatedCoordinates,
                     shapeCoordinates: updatedShapeCoordinates,
